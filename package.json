@@ -1,0 +1,14 @@
+{
+  "name": "virtual-actor-quality",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Repository-level quality gates for virtual-actor.",
+  "scripts": {
+    "lint:md": "markdownlint-cli2",
+    "quality:docs": "npm run lint:md && vale delivery docs portfolio-sync.md",
+    "quality:iteration": "python3 scripts/iteration-guard.py --repo-root . --mode release"
+  },
+  "devDependencies": {
+    "markdownlint-cli2": "^0.22.1"
+  }
+}

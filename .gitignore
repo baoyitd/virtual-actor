@@ -15,6 +15,7 @@ __pycache__/
 htmlcov/
 
 # Node / frontend
+node_modules/
 frontend/node_modules/
 frontend/dist/
 frontend/.vite/
@@ -25,6 +26,7 @@ data/
 *.sqlite
 *.sqlite3
 *.db
+.vale_cache/
 
 # OS and editor files
 .DS_Store

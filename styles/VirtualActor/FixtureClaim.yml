@@ -1,0 +1,9 @@
+extends: existence
+message: "Do not describe fixture or mock evidence as real integration evidence."
+level: error
+ignorecase: true
+tokens:
+  - "mock real integration"
+  - "stub real integration"
+  - "static fixture real integration"
+  - "manual fixture real integration"
