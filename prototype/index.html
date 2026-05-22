@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Virtual Actor — 角色产品原型</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --sidebar-w: 220px;
+    --primary-900: #0F172A;
+    --primary-800: #1E293B;
+    --primary-700: #334155;
+    --primary-600: #475569;
+    --primary-50: #F8FAFC;
+    --accent: #0EA5E9;
+    --accent-light: #38BDF8;
+    --accent-glow: rgba(14,165,233,0.15);
+    --bg: #F1F5F9;
+    --card: #FFFFFF;
+    --text: #1E293B;
+    --text-secondary: #64748B;
+    --text-light: #94A3B8;
+    --green: #22C55E;
+    --blue: #3B82F6;
+    --amber: #F59E0B;
+    --red: #EF4444;
+    --gray: #94A3B8;
+    --border: #E2E8F0;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+    --shadow-lg: 0 12px 32px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.06);
+    --transition: 200ms cubic-bezier(0.4,0,0.2,1);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', 'PingFang SC', -apple-system, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; display: flex; min-height: 100vh; }
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--primary-600); border-radius: 3px; }
+
+  /* Sidebar */
+  .sidebar { width: var(--sidebar-w); background: linear-gradient(180deg, var(--primary-900) 0%, var(--primary-800) 100%); color: #E2E8F0; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; bottom: 0; z-index: 20; }
+  .sidebar-logo { padding: 24px 20px; border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; gap: 10px; }
+  .sidebar-logo .icon { width: 36px; height: 36px; background: linear-gradient(135deg, var(--accent), var(--accent-light)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .sidebar-logo h1 { font-size: 15px; font-weight: 600; letter-spacing: -0.3px; }
+  .sidebar-logo span { font-size: 11px; color: var(--text-light); }
+  .sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius-sm); cursor: pointer; transition: all var(--transition); color: var(--text-light); font-size: 13px; font-weight: 500; text-decoration: none; }
+  .nav-item:hover { background: rgba(255,255,255,0.06); color: #E2E8F0; }
+  .nav-item.active { background: var(--accent-glow); color: var(--accent-light); }
+  .nav-item .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+  .sidebar-footer { padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.06); font-size: 11px; color: var(--text-light); }
+
+  /* Main */
+  .main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+  .page-header { padding: 24px 32px 16px; background: var(--card); border-bottom: 1px solid var(--border); }
+  .page-header h2 { font-size: 22px; font-weight: 600; letter-spacing: -0.4px; }
+  .page-header .breadcrumb { font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
+  .page-body { flex: 1; padding: 24px 32px; overflow-y: auto; }
+
+  /* Page transition */
+  .page { display: none; animation: fadeIn 200ms ease; }
+  .page.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Status badges */
+  .status-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; letter-spacing: 0.2px; }
+  .status-draft { background: #F1F5F9; color: #64748B; }
+  .status-test { background: #EFF6FF; color: #3B82F6; }
+  .status-published { background: #F0FDF4; color: #22C55E; }
+  .status-archived { background: #FFF7ED; color: #F59E0B; }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .status-draft .status-dot { background: #94A3B8; }
+  .status-test .status-dot { background: #3B82F6; }
+  .status-published .status-dot { background: #22C55E; }
+  .status-archived .status-dot { background: #F59E0B; }
+
+  /* Cards */
+  .card { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); transition: all var(--transition); }
+  .card:hover { box-shadow: var(--shadow-md); }
+  .card-header { padding: 16px 20px; border-bottom: 1px solid var(--border); font-weight: 600; font-size: 14px; display: flex; align-items: center; justify-content: space-between; }
+  .card-body { padding: 20px; }
+
+  /* Buttons */
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; cursor: pointer; transition: all var(--transition); border: none; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #0284C7; box-shadow: 0 2px 8px rgba(14,165,233,0.3); }
+  .btn-secondary { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: #E2E8F0; }
+  .btn-ghost { background: transparent; color: var(--text-secondary); }
+  .btn-ghost:hover { background: var(--bg); color: var(--text); }
+  .btn-danger { background: var(--red); color: #fff; }
+  .btn-danger:hover { background: #DC2626; }
+  .btn-sm { padding: 5px 10px; font-size: 12px; }
+  .btn-lg { padding: 10px 24px; font-size: 14px; }
+
+  /* Form */
+  .form-group { margin-bottom: 18px; }
+  .form-label { display: block; font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
+  .form-input, .form-select, .form-textarea { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; color: var(--text); background: var(--card); transition: border var(--transition); font-family: inherit; }
+  .form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(14,165,233,0.1); }
+  .form-input.error { border-color: var(--red); }
+  .form-error { font-size: 11px; color: var(--red); margin-top: 4px; }
+  .form-textarea { resize: vertical; min-height: 80px; }
+  .form-hint { font-size: 11px; color: var(--text-light); margin-top: 4px; }
+
+  /* Filter tabs */
+  .filter-tabs { display: flex; gap: 6px; margin-bottom: 20px; }
+  .filter-tab { padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all var(--transition); border: 1px solid var(--border); background: var(--card); color: var(--text-secondary); }
+  .filter-tab:hover { border-color: var(--accent); color: var(--accent); }
+  .filter-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  /* Role cards grid */
+  .role-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
+  .role-card { cursor: pointer; overflow: hidden; }
+  .role-card-inner { padding: 20px; }
+  .role-card-avatar { width: 48px; height: 48px; border-radius: var(--radius-sm); background: linear-gradient(135deg, var(--primary-800), var(--primary-700)); display: flex; align-items: center; justify-content: center; font-size: 22px; color: #fff; }
+  .role-card-header { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 14px; }
+  .role-card-title { font-size: 16px; font-weight: 600; }
+  .role-card-bio { font-size: 12px; color: var(--text-secondary); margin-top: 3px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .role-card-meta { display: flex; gap: 16px; font-size: 11px; color: var(--text-light); margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+  .role-card-actions { display: flex; gap: 4px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+
+  /* Accordion */
+  .accordion { border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 12px; overflow: hidden; background: var(--card); }
+  .accordion-header { padding: 14px 20px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; font-weight: 600; font-size: 14px; transition: background var(--transition); user-select: none; }
+  .accordion-header:hover { background: var(--bg); }
+  .accordion-header .arrow { transition: transform var(--transition); font-size: 12px; color: var(--text-light); }
+  .accordion.open .accordion-header .arrow { transform: rotate(180deg); }
+  .accordion-body { padding: 0 20px 20px; display: none; }
+  .accordion.open .accordion-body { display: block; }
+
+  /* Modal */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.6); z-index: 100; align-items: center; justify-content: center; backdrop-filter: blur(2px); animation: fadeIn 150ms ease; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow-lg); width: 90%; max-width: 720px; max-height: 80vh; display: flex; flex-direction: column; animation: slideUp 200ms ease; }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  .modal-header { padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; font-weight: 600; }
+  .modal-body { padding: 20px 24px; overflow-y: auto; flex: 1; }
+  .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
+
+  /* Knowledge item */
+  .knowledge-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 8px; cursor: pointer; transition: all var(--transition); }
+  .knowledge-item:hover { border-color: var(--accent); background: rgba(14,165,233,0.03); }
+  .knowledge-item.selected { border-color: var(--accent); background: rgba(14,165,233,0.06); }
+  .knowledge-item .check { width: 18px; height: 18px; border: 2px solid var(--border); border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all var(--transition); }
+  .knowledge-item.selected .check { background: var(--accent); border-color: var(--accent); color: #fff; font-size: 10px; }
+  .knowledge-info { flex: 1; min-width: 0; }
+  .knowledge-title { font-weight: 500; font-size: 13px; margin-bottom: 3px; }
+  .knowledge-meta { font-size: 11px; color: var(--text-light); display: flex; gap: 8px; }
+
+  /* Test page */
+  .test-layout { display: flex; gap: 20px; height: calc(100vh - 160px); }
+  .chat-panel { flex: 3; display: flex; flex-direction: column; background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); }
+  .chat-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+  .chat-bubble { max-width: 80%; padding: 12px 16px; border-radius: 14px; font-size: 13px; line-height: 1.6; }
+  .chat-bubble.user { align-self: flex-end; background: var(--accent); color: #fff; border-bottom-right-radius: 4px; }
+  .chat-bubble.role { align-self: flex-start; background: var(--bg); border-bottom-left-radius: 4px; }
+  .chat-bubble-header { font-size: 11px; font-weight: 600; margin-bottom: 4px; opacity: 0.7; }
+  .chat-input-area { padding: 16px 20px; border-top: 1px solid var(--border); display: flex; gap: 8px; }
+  .chat-input-area input { flex: 1; padding: 10px 16px; border: 1px solid var(--border); border-radius: 24px; font-size: 13px; outline: none; }
+  .chat-input-area input:focus { border-color: var(--accent); }
+  .chat-input-area button { width: 40px; height: 40px; border-radius: 50%; background: var(--accent); color: #fff; border: none; cursor: pointer; font-size: 16px; transition: all var(--transition); }
+  .chat-input-area button:hover { background: #0284C7; }
+  .source-panel { flex: 2; background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); display: flex; flex-direction: column; }
+  .source-panel-header { padding: 16px 20px; border-bottom: 1px solid var(--border); font-weight: 600; font-size: 13px; }
+  .source-panel-body { flex: 1; overflow-y: auto; padding: 16px 20px; }
+  .source-item { padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 8px; }
+  .source-item-title { font-weight: 600; font-size: 12px; margin-bottom: 6px; }
+  .source-item-snippet { font-size: 11px; color: var(--text-secondary); line-height: 1.5; background: var(--bg); padding: 8px; border-radius: 4px; font-style: italic; border-left: 3px solid var(--accent); }
+
+  /* Version timeline */
+  .timeline { position: relative; padding-left: 24px; }
+  .timeline::before { content: ''; position: absolute; left: 8px; top: 0; bottom: 0; width: 2px; background: var(--border); }
+  .timeline-item { position: relative; padding-bottom: 20px; }
+  .timeline-dot { position: absolute; left: -20px; top: 4px; width: 12px; height: 12px; border-radius: 50%; background: var(--accent); border: 2px solid var(--card); }
+  .timeline-date { font-size: 11px; color: var(--text-light); margin-bottom: 4px; }
+  .timeline-content { font-size: 13px; }
+
+  /* Detail grid */
+  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .detail-card-label { font-size: 11px; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; font-weight: 600; }
+  .detail-card-value { font-size: 13px; line-height: 1.6; }
+
+  /* Empty state */
+  .empty-state { text-align: center; padding: 60px 20px; }
+  .empty-state .empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.3; }
+  .empty-state h3 { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+  .empty-state p { color: var(--text-secondary); margin-bottom: 20px; }
+
+  /* Tags */
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; background: #F1F5F9; color: #475569; margin: 2px 3px; }
+  .tag.blue { background: #EFF6FF; color: #2563EB; }
+  .tag.green { background: #F0FDF4; color: #16A34A; }
+
+  /* Toolbar fixed bottom */
+  .toolbar-fixed { position: sticky; bottom: 0; background: var(--card); border-top: 1px solid var(--border); padding: 14px 32px; display: flex; align-items: center; justify-content: flex-end; gap: 10px; margin: 0 -32px -24px; }
+
+  /* Version table */
+  .version-table { width: 100%; border-collapse: collapse; }
+  .version-table th { font-size: 11px; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; padding: 10px 16px; text-align: left; border-bottom: 2px solid var(--border); font-weight: 600; }
+  .version-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .version-table tr:hover td { background: var(--bg); }
+  .version-table .expandable { cursor: pointer; }
+  .version-detail-row { display: none; }
+  .version-detail-row.open { display: table-row; }
+  .version-detail-row td { background: var(--bg); font-size: 12px; padding: 16px 32px; }
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="icon">🎭</div>
+    <div>
+      <h1>Virtual Actor</h1>
+      <span>角色资产管理</span>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <a class="nav-item active" href="#page/role-list" data-page="role-list">
+      <span class="nav-icon">📋</span> 角色列表
+    </a>
+    <a class="nav-item" href="#page/role-create" data-page="role-create">
+      <span class="nav-icon">➕</span> 创建角色
+    </a>
+  </nav>
+  <div class="sidebar-footer">v0.1 · 决策闭环组合</div>
+</aside>
+
+<!-- Main Content -->
+<main class="main" id="mainContent">
+  <!-- Page: Role List -->
+  <div class="page active" id="page-role-list">
+    <div class="page-header">
+      <div class="breadcrumb">角色管理 / 角色列表</div>
+      <h2>角色列表</h2>
+    </div>
+    <div class="page-body" id="roleListBody"></div>
+  </div>
+
+  <!-- Page: Role Create/Edit -->
+  <div class="page" id="page-role-edit">
+    <div class="page-header">
+      <div class="breadcrumb"><a href="#page/role-list" style="color:var(--accent);text-decoration:none;">角色管理</a> / <span id="editModeLabel">创建角色</span></div>
+      <h2 id="editPageTitle">创建角色</h2>
+    </div>
+    <div class="page-body" id="roleEditBody"></div>
+  </div>
+
+  <!-- Page: Role Detail -->
+  <div class="page" id="page-role-detail">
+    <div class="page-header">
+      <div class="breadcrumb"><a href="#page/role-list" style="color:var(--accent);text-decoration:none;">角色管理</a> / 角色详情</div>
+      <h2 id="detailPageTitle">角色详情</h2>
+    </div>
+    <div class="page-body" id="roleDetailBody"></div>
+  </div>
+
+  <!-- Page: Role Test -->
+  <div class="page" id="page-role-test">
+    <div class="page-header">
+      <div class="breadcrumb"><a href="#page/role-list" style="color:var(--accent);text-decoration:none;">角色管理</a> / 角色测试</div>
+      <h2 id="testPageTitle">角色测试</h2>
+    </div>
+    <div class="page-body" id="roleTestBody" style="padding:0 32px;"></div>
+  </div>
+
+  <!-- Page: Role Publish -->
+  <div class="page" id="page-role-publish">
+    <div class="page-header">
+      <div class="breadcrumb"><a href="#page/role-list" style="color:var(--accent);text-decoration:none;">角色管理</a> / 发布与版本</div>
+      <h2 id="publishPageTitle">发布与版本管理</h2>
+    </div>
+    <div class="page-body" id="rolePublishBody"></div>
+  </div>
+</main>
+
+<!-- Knowledge Binding Modal -->
+<div class="modal-overlay" id="knowledgeModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span>📚 知识浏览与绑定</span>
+      <button class="btn btn-ghost btn-sm" onclick="closeKnowledgeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="knowledgeModalBody"></div>
+    <div class="modal-footer">
+      <span style="flex:1;font-size:13px;color:var(--text-secondary);" id="knowledgeCount">已选 0 个知识条目</span>
+      <button class="btn btn-secondary btn-sm" onclick="closeKnowledgeModal()">取消</button>
+      <button class="btn btn-primary btn-sm" onclick="confirmKnowledgeBinding()">确认绑定</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===================== MOCK DATA =====================
+const now = new Date().toISOString();
+const appState = {
+  roles: [
+    {
+      id: 'role-001',
+      name: '资深财务分析师',
+      status: 'published',
+      current_version: 'v1.0',
+      avatar_initials: 'CFO',
+      tags: ['财务', '分析', '投资'],
+      // L1
+      bio: '具有15年财务管理与投资分析经验，擅长从财务数据中洞察企业经营风险，提供投资决策建议。',
+      // L2
+      identity_background: '曾在普华永道担任高级审计经理8年，后在头部券商担任CFA持证分析师。',
+      point_of_view: '风险优先，数据驱动，注重现金流而非账面利润。',
+      decision_style: 'conservative',
+      responsibility_boundary: '仅提供财务视角分析，不涉及法律判断和业务战略决策。',
+      speaking_style: '专业严谨，用数据说话，提供明确的概率判断而非模糊建议。',
+      // L3
+      knowledge_refs: ['k-001', 'k-002'],
+      validated_knowledge_versions: [{ kid:'k-001', version:'abc123', validated_at:now }],
+      knowledge_boundary: '仅基于提供的财务审计和投资分析文档，不涉及未绑定的行业知识。',
+      // L4
+      tools: ['financial_calculator', 'risk_assessment'],
+      collaboration_mode: 'independent',
+      capability_boundary: '不执行实际交易，不替代持牌金融顾问。',
+      // L5
+      model_binding: { provider:'openai', model:'gpt-4o', temperature:0.3, max_tokens:2048 },
+      memory_strategy: 'session',
+      api_expose_config: { enabled:true, endpoint:'/api/roles/role-001' },
+      created_at: '2026-05-10T08:00:00Z',
+      updated_at: now,
+      versions: [
+        { id:'ver-001', number:'v1.0', published_at:'2026-05-12T10:00:00Z', notes:'初始发布：完成财务领域知识绑定和模型配置，通过基本测试。' },
+        { id:'ver-000', number:'v0.9', published_at:'2026-05-11T14:00:00Z', notes:'测试版本：调整决策风格为保守型，补充责任边界声明。' }
+      ]
+    },
+    {
+      id: 'role-002',
+      name: '技术架构顾问',
+      status: 'test',
+      current_version: 'v0.8',
+      avatar_initials: 'TA',
+      tags: ['技术', '架构', '系统设计'],
+      bio: '专注于分布式系统架构设计，擅长微服务、云原生和AI基础设施规划。',
+      identity_background: '前阿里云高级架构师，主导过3个千万级用户系统的架构演进。',
+      point_of_view: '工程务实，技术选型优先考虑可维护性而非新奇度。',
+      decision_style: 'balanced',
+      responsibility_boundary: '提供技术架构建议，不做具体编码实现。',
+      speaking_style: '逻辑清晰，多使用架构图和对比分析，避免模棱两可。',
+      knowledge_refs: ['k-003', 'k-004'],
+      validated_knowledge_versions: [{ kid:'k-003', version:'def456', validated_at:now }],
+      knowledge_boundary: '仅基于提供的架构设计文档和技术方案。',
+      tools: ['architecture_review', 'tech_stack_evaluation'],
+      collaboration_mode: 'consultative',
+      capability_boundary: '不做性能测试和压测，不替代运维团队。',
+      model_binding: { provider:'anthropic', model:'claude-sonnet-4-20250514', temperature:0.5, max_tokens:4096 },
+      memory_strategy: 'summary',
+      api_expose_config: { enabled:false },
+      created_at: '2026-05-11T09:00:00Z',
+      updated_at: '2026-05-13T08:00:00Z',
+      versions: [
+        { id:'ver-800', number:'v0.8', published_at:'2026-05-13T08:00:00Z', notes:'测试版：完成技术知识库绑定，调整模型为Claude，正在测试决策风格。' }
+      ]
+    },
+    {
+      id: 'role-003',
+      name: '产品策略顾问',
+      status: 'draft',
+      current_version: null,
+      avatar_initials: 'PM',
+      tags: ['产品', '策略', '市场'],
+      bio: '具备产品全生命周期管理经验，擅长市场定位、竞品分析和增长策略。',
+      identity_background: '',
+      point_of_view: '',
+      decision_style: 'aggressive',
+      responsibility_boundary: '',
+      speaking_style: '',
+      knowledge_refs: [],
+      validated_knowledge_versions: [],
+      knowledge_boundary: '',
+      tools: [],
+      collaboration_mode: 'independent',
+      capability_boundary: '',
+      model_binding: { provider:'openai', model:'gpt-4o', temperature:0.7, max_tokens:2048 },
+      memory_strategy: 'none',
+      api_expose_config: { enabled:false },
+      created_at: '2026-05-13T06:00:00Z',
+      updated_at: '2026-05-13T06:00:00Z',
+      versions: []
+    },
+    {
+      id: 'role-004',
+      name: '法务合规审核员',
+      status: 'archived',
+      current_version: 'v1.1',
+      avatar_initials: 'LG',
+      tags: ['法务', '合规', '风控'],
+      bio: '专注于企业法务合规审查，精通公司法、合同法及数据隐私法规。',
+      identity_background: '前金杜律师事务所合伙人，专注企业上市合规15年。',
+      point_of_view: '风险厌恶，合规底线不容妥协，所有建议必须有法条依据。',
+      decision_style: 'conservative',
+      responsibility_boundary: '仅做合规判断，不替代法律意见书。',
+      speaking_style: '严谨精确，引用具体法条编号，不使用模糊表述。',
+      knowledge_refs: ['k-005'],
+      validated_knowledge_versions: [{ kid:'k-005', version:'ghi789', validated_at:'2026-04-20T00:00:00Z' }],
+      knowledge_boundary: '仅基于已绑定的法规文档，不涉及待生效法规的解释。',
+      tools: ['regulation_search', 'compliance_checklist'],
+      collaboration_mode: 'independent',
+      capability_boundary: '不提供正式法律意见。',
+      model_binding: { provider:'openai', model:'gpt-4o', temperature:0.1, max_tokens:3072 },
+      memory_strategy: 'session',
+      api_expose_config: { enabled:false },
+      created_at: '2026-04-15T00:00:00Z',
+      updated_at: '2026-05-01T00:00:00Z',
+      versions: [
+        { id:'ver-110', number:'v1.1', published_at:'2026-04-28T00:00:00Z', notes:'补充数据隐私法规知识库。' },
+        { id:'ver-100', number:'v1.0', published_at:'2026-04-20T00:00:00Z', notes:'初始发布版本。' }
+      ]
+    }
+  ],
+  knowledgeItems: [
+    { id:'k-001', title:'企业财务审计标准指引（2025版）', type:'reference', status:'published', tags:['财务','审计'], summary:'涵盖企业财务审计的核心标准和流程，包括资产负债表审计、利润表审计和现金流分析。', source:'中国注册会计师协会' },
+    { id:'k-002', title:'投资决策中的风险量化模型', type:'note', status:'reviewed', tags:['投资','风险'], summary:'探讨VaR、CVaR等模型在投资决策中的应用，以及蒙特卡洛模拟的实践案例。', source:'CFA教材' },
+    { id:'k-003', title:'微服务架构设计原则与模式', type:'reference', status:'published', tags:['架构','微服务'], summary:'梳理微服务拆分策略、服务间通信模式、数据一致性方案等核心设计原则。', source:'Martin Fowler博客' },
+    { id:'k-004', title:'云原生基础设施选型对比', type:'note', status:'reviewed', tags:['云原生','基础设施'], summary:'对比Kubernetes、Serverless、Service Mesh等方案的成本、性能和维护性。', source:'CNCF技术报告' },
+    { id:'k-005', title:'个人信息保护法逐条解读', type:'reference', status:'published', tags:['法律','隐私'], summary:'对《个人信息保护法》进行逐条法律分析，包含实务操作指引和合规建议。', source:'全国人大常委会' },
+    { id:'k-006', title:'2026年科技行业市场趋势分析', type:'summary', status:'reviewed', tags:['市场','科技'], summary:'分析AI、半导体、新能源汽车等领域的市场趋势和投资机会。', source:'Gartner报告' },
+    { id:'k-007', title:'OKR最佳实践与常见误区', type:'note', status:'reviewed', tags:['管理','OKR'], summary:'基于Google和字节跳动的OKR实践经验，梳理目标设定的DO和DON\'T。', source:'John Doerr' },
+    { id:'k-008', title:'GDPR合规检查清单', type:'reference', status:'archived', tags:['法律','隐私','GDPR'], summary:'GDPR核心条款的合规检查清单（已过期，已被2025年新版替代）。', source:'EU' }
+  ],
+  editingRoleId: null,
+  knowledgeModalCallback: null,
+  tempKnowledgeSelection: []
+};
+
+// ===================== ROUTING =====================
+function navigate(page, roleId) {
+  let hash = '#page/' + page;
+  if (roleId) hash += '/' + roleId;
+  window.location.hash = hash;
+}
+
+function handleRoute() {
+  const hash = window.location.hash.replace('#', '');
+  const parts = hash.split('/');
+  const page = parts[1] || 'role-list';
+  const roleId = parts[2];
+
+  // Update sidebar
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  const navItem = document.querySelector(`[data-page="${page}"]`);
+  if (navItem) navItem.classList.add('active');
+
+  // Show page
+  document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+  const pageEl = document.getElementById('page-' + (page === 'role-edit' ? 'role-edit' : page === 'role-create' ? 'role-edit' : page === 'role-detail' ? 'role-detail' : page === 'role-test' ? 'role-test' : page === 'role-publish' ? 'role-publish' : 'role-list'));
+  if (pageEl) {
+    pageEl.classList.add('active');
+    if (pageEl.id === 'page-role-list') pageEl.style.display = 'block';
+  }
+
+  // Render
+  switch(page) {
+    case 'role-list': renderRoleList(); break;
+    case 'role-create': renderRoleEdit(null); break;
+    case 'role-edit': renderRoleEdit(roleId); break;
+    case 'role-detail': renderRoleDetail(roleId); break;
+    case 'role-test': renderRoleTest(roleId); break;
+    case 'role-publish': renderRolePublish(roleId); break;
+    default: navigate('role-list');
+  }
+}
+
+window.addEventListener('hashchange', handleRoute);
+window.addEventListener('load', () => { if (!window.location.hash) navigate('role-list'); else handleRoute(); });
+
+// ===================== UTILS =====================
+function getStatusBadge(status) {
+  const labels = { draft:'草稿', test:'测试中', published:'已发布', archived:'已归档' };
+  return `<span class="status-badge status-${status}"><span class="status-dot"></span>${labels[status] || status}</span>`;
+}
+
+function getDecisionStyleLabel(style) {
+  const m = { conservative:'保守型', balanced:'平衡型', aggressive:'激进型' };
+  return m[style] || style;
+}
+
+function getRoleById(id) { return appState.roles.find(r => r.id === id); }
+
+// ===================== PAGE: ROLE LIST =====================
+function renderRoleList(filterStatus) {
+  filterStatus = filterStatus || appState._listFilter || 'all';
+  appState._listFilter = filterStatus;
+  let roles = filterStatus === 'all' ? appState.roles : appState.roles.filter(r => r.status === filterStatus);
+  const statuses = ['all','draft','test','published','archived'];
+  const labels = { all:'全部', draft:'草稿', test:'测试中', published:'已发布', archived:'已归档' };
+  const counts = {};
+  statuses.forEach(s => { counts[s] = s === 'all' ? appState.roles.length : appState.roles.filter(r => r.status === s).length; });
+
+  let html = '';
+  html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">';
+  html += '<div class="filter-tabs">';
+  statuses.forEach(s => {
+    html += `<div class="filter-tab ${filterStatus === s ? 'active' : ''}" onclick="setListFilter('${s}')">${labels[s]} <span style="opacity:0.7;font-size:11px;">${counts[s]}</span></div>`;
+  });
+  html += '</div>';
+  html += `<button class="btn btn-primary btn-lg" onclick="navigate('role-create')">➕ 新建角色</button>`;
+  html += '</div>';
+
+  if (roles.length === 0) {
+    html += `<div class="empty-state card"><div class="empty-icon">🎭</div><h3>还没有角色</h3><p>创建你的第一个虚拟角色，开始构建专家团队</p><button class="btn btn-primary" onclick="navigate('role-create')">创建角色</button></div>`;
+  } else {
+    html += '<div class="role-grid">';
+    roles.forEach(r => {
+      const kCount = r.knowledge_refs.length;
+      html += `<div class="card role-card" onclick="navigate('role-detail','${r.id}')">`;
+      html += `<div class="role-card-inner">`;
+      html += `<div class="role-card-header">`;
+      html += `<div class="role-card-avatar">${r.avatar_initials}</div>`;
+      html += `<div style="flex:1;min-width:0;">`;
+      html += `<div style="display:flex;align-items:center;gap:8px;"><span class="role-card-title">${r.name}</span>${getStatusBadge(r.status)}</div>`;
+      html += `<div class="role-card-bio">${r.bio || '暂无简介'}</div>`;
+      html += `</div></div>`;
+      html += `<div class="role-card-meta"><span>📚 ${kCount} 条知识</span><span>🕐 ${new Date(r.updated_at).toLocaleDateString('zh-CN')}</span></div>`;
+      html += `<div class="role-card-actions" onclick="event.stopPropagation()">`;
+      html += `<button class="btn btn-ghost btn-sm" onclick="navigate('role-edit','${r.id}')">编辑</button>`;
+      if (r.status !== 'published') html += `<button class="btn btn-ghost btn-sm" onclick="navigate('role-test','${r.id}')">测试</button>`;
+      if (r.status === 'test') html += `<button class="btn btn-primary btn-sm" onclick="navigate('role-publish','${r.id}')">发布</button>`;
+      if (r.status === 'published') html += `<button class="btn btn-secondary btn-sm" onclick="archiveRole('${r.id}')">归档</button>`;
+      if (r.status === 'archived') html += `<button class="btn btn-ghost btn-sm" onclick="restoreRole('${r.id}')">恢复</button>`;
+      html += `</div></div></div>`;
+    });
+    html += '</div>';
+  }
+  document.getElementById('roleListBody').innerHTML = html;
+}
+
+function setListFilter(status) { appState._listFilter = status; renderRoleList(status); }
+
+function archiveRole(id) { const r = getRoleById(id); if (r && r.status === 'published') { r.status = 'archived'; renderRoleList(appState._listFilter); } }
+function restoreRole(id) { const r = getRoleById(id); if (r && r.status === 'archived') { r.status = 'draft'; renderRoleList(appState._listFilter); } }
+
+// ===================== PAGE: ROLE EDIT =====================
+function renderRoleEdit(roleId) {
+  const isEdit = !!roleId;
+  const role = isEdit ? getRoleById(roleId) : null;
+  appState.editingRoleId = roleId;
+
+  const title = isEdit ? '编辑角色' : '创建角色';
+  document.getElementById('editModeLabel').textContent = title;
+  document.getElementById('editPageTitle').textContent = title;
+
+  if (isEdit && !role) { navigate('role-list'); return; }
+
+  const d = isEdit ? role : {
+    name:'', avatar_initials:'?', bio:'', tags:'',
+    identity_background:'', point_of_view:'', decision_style:'balanced',
+    responsibility_boundary:'', speaking_style:'',
+    knowledge_refs:[], validated_knowledge_versions:[], knowledge_boundary:'',
+    tools:'', collaboration_mode:'independent', capability_boundary:'',
+    model_binding:{ provider:'openai', model:'gpt-4o', temperature:0.5, max_tokens:2048 },
+    memory_strategy:'session', api_expose_config:{ enabled:false }
+  };
+
+  let html = '';
+  html += '<div style="max-width:800px;">';
+
+  // L1: Identity
+  html += '<div class="accordion open">';
+  html += `<div class="accordion-header" onclick="toggleAccordion(this)"><span>🔤 L1 · 身份 Identity</span><span class="arrow">▼</span></div>`;
+  html += '<div class="accordion-body">';
+  html += `<div class="form-group"><label class="form-label">角色名称 *</label><input class="form-input" id="ef-name" value="${escHtml(d.name)}" placeholder="如：资深财务分析师"></div>`;
+  html += `<div class="form-group"><label class="form-label">一句话简介 *</label><textarea class="form-textarea" id="ef-bio" placeholder="简要描述角色的核心能力和定位">${escHtml(d.bio)}</textarea></div>`;
+  html += `<div class="form-group"><label class="form-label">标签（逗号分隔）</label><input class="form-input" id="ef-tags" value="${isEdit ? (d.tags || []).join(', ') : ''}" placeholder="如：财务, 分析, 投资"></div>`;
+  html += '</div></div>';
+
+  // L2: Mind
+  html += '<div class="accordion">';
+  html += `<div class="accordion-header" onclick="toggleAccordion(this)"><span>🧠 L2 · 心智 Mind</span><span class="arrow">▼</span></div>`;
+  html += '<div class="accordion-body">';
+  html += `<div class="form-group"><label class="form-label">定位描述</label><textarea class="form-textarea" id="ef-identity_bg" placeholder="角色的专业背景和经验">${escHtml(d.identity_background)}</textarea></div>`;
+  html += `<div class="form-group"><label class="form-label">立场/思维偏好</label><textarea class="form-textarea" id="ef-pov" placeholder="角色在分析问题时的倾向性立场">${escHtml(d.point_of_view)}</textarea></div>`;
+  html += `<div class="form-group"><label class="form-label">决策风格</label><select class="form-select" id="ef-decision"><option value="conservative" ${d.decision_style==='conservative'?'selected':''}>保守型 — 风险优先，数据驱动</option><option value="balanced" ${d.decision_style==='balanced'?'selected':''}>平衡型 — 风险与机会兼顾</option><option value="aggressive" ${d.decision_style==='aggressive'?'selected':''}>激进型 — 机会优先，快速迭代</option></select></div>`;
+  html += `<div class="form-group"><label class="form-label">职责边界</label><textarea class="form-textarea" id="ef-boundary" placeholder="明确角色能做什么、不能做什么">${escHtml(d.responsibility_boundary)}</textarea></div>`;
+  html += `<div class="form-group"><label class="form-label">表达风格</label><textarea class="form-textarea" id="ef-speaking" placeholder="描述角色的表达语气、用词偏好和沟通方式">${escHtml(d.speaking_style)}</textarea></div>`;
+  html += '</div></div>';
+
+  // L3: Knowledge
+  html += '<div class="accordion">';
+  html += `<div class="accordion-header" onclick="toggleAccordion(this)"><span>📚 L3 · 知识 Knowledge</span><span class="arrow">▼</span></div>`;
+  html += '<div class="accordion-body">';
+  html += `<div id="ef-knowledge-list" style="margin-bottom:12px;">`;
+  if (d.knowledge_refs && d.knowledge_refs.length > 0) {
+    d.knowledge_refs.forEach(kid => {
+      const k = appState.knowledgeItems.find(ki => ki.id === kid);
+      if (k) html += `<div class="knowledge-item" style="cursor:default;border-color:var(--accent);background:rgba(14,165,233,0.03);"><div class="check" style="background:var(--accent);border-color:var(--accent);color:#fff;font-size:10px;">✓</div><div class="knowledge-info"><div class="knowledge-title">${k.title}</div><div class="knowledge-meta"><span class="tag green">${k.type}</span><span class="tag blue">${k.tags[0]}</span></div></div></div>`;
+    });
+  } else {
+    html += '<div style="color:var(--text-light);font-size:13px;padding:8px 0;">暂未绑定知识</div>';
+  }
+  html += `</div>`;
+  html += `<button class="btn btn-secondary" onclick="openKnowledgeModal()">📖 浏览并绑定知识</button>`;
+  html += `<div class="form-group" style="margin-top:16px;"><label class="form-label">知识范围边界声明</label><textarea class="form-textarea" id="ef-k-boundary" placeholder="明确角色基于哪些知识范围回答问题">${escHtml(d.knowledge_boundary)}</textarea></div>`;
+  html += '</div></div>';
+
+  // L4: Capability
+  html += '<div class="accordion">';
+  html += `<div class="accordion-header" onclick="toggleAccordion(this)"><span>⚡ L4 · 能力 Capability</span><span class="arrow">▼</span></div>`;
+  html += '<div class="accordion-body">';
+  html += `<div class="form-group"><label class="form-label">可调用工具（逗号分隔）</label><input class="form-input" id="ef-tools" value="${isEdit ? (d.tools || []).join(', ') : ''}" placeholder="如：financial_calculator, risk_assessment"></div>`;
+  html += `<div class="form-group"><label class="form-label">协作模式</label><select class="form-select" id="ef-collab"><option value="independent" ${d.collaboration_mode==='independent'?'selected':''}>独立决策</option><option value="delegatable" ${d.collaboration_mode==='delegatable'?'selected':''}>可委派</option><option value="consultative" ${d.collaboration_mode==='consultative'?'selected':''}>仅咨询</option></select></div>`;
+  html += `<div class="form-group"><label class="form-label">能力诚实声明</label><textarea class="form-textarea" id="ef-cap-boundary" placeholder="明确角色的能力边界">${escHtml(d.capability_boundary)}</textarea></div>`;
+  html += '</div></div>';
+
+  // L5: Config
+  html += '<div class="accordion">';
+  html += `<div class="accordion-header" onclick="toggleAccordion(this)"><span>⚙️ L5 · 配置 Config</span><span class="arrow">▼</span></div>`;
+  html += '<div class="accordion-body">';
+  html += `<div class="form-group"><label class="form-label">LLM 提供商</label><select class="form-select" id="ef-provider"><option value="openai" ${d.model_binding.provider==='openai'?'selected':''}>OpenAI</option><option value="anthropic" ${d.model_binding.provider==='anthropic'?'selected':''}>Anthropic</option><option value="custom" ${d.model_binding.provider==='custom'?'selected':''}>DeepSeek（私有部署）</option><option value="qwen" ${d.model_binding.provider==='qwen'?'selected':''}>通义千问</option></select></div>`;
+  html += `<div class="form-group"><label class="form-label">模型</label><input class="form-input" id="ef-model" value="${d.model_binding.model}"></div>`;
+  html += `<div class="form-group"><label class="form-label">Temperature: <span id="ef-temp-val">${d.model_binding.temperature}</span></label><input type="range" min="0" max="1" step="0.1" class="form-input" id="ef-temperature" value="${d.model_binding.temperature}" oninput="document.getElementById('ef-temp-val').textContent=this.value" style="padding:0;"></div>`;
+  html += `<div class="form-group"><label class="form-label">Max Tokens</label><input class="form-input" type="number" id="ef-max-tokens" value="${d.model_binding.max_tokens}"></div>`;
+  html += `<div class="form-group"><label class="form-label">记忆策略</label><select class="form-select" id="ef-memory"><option value="none" ${d.memory_strategy==='none'?'selected':''}>无记忆</option><option value="session" ${d.memory_strategy==='session'?'selected':''}>会话内记忆</option><option value="summary" ${d.memory_strategy==='summary'?'selected':''}>摘要记忆</option></select></div>`;
+  html += '</div></div>';
+
+  html += '</div>';
+
+  // Toolbar
+  html += '<div class="toolbar-fixed">';
+  html += `<button class="btn btn-secondary" onclick="navigate('role-list')">取消</button>`;
+  html += `<button class="btn btn-primary btn-lg" onclick="saveRole()">💾 ${isEdit ? '保存修改' : '保存草稿'}</button>`;
+  html += '</div>';
+
+  document.getElementById('roleEditBody').innerHTML = html;
+
+  // Init knowledge selection
+  appState.tempKnowledgeSelection = isEdit ? [...(d.knowledge_refs || [])] : [];
+}
+
+function escHtml(s) { if (!s) return ''; return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function toggleAccordion(header) {
+  const acc = header.parentElement;
+  acc.classList.toggle('open');
+}
+
+function saveRole() {
+  const name = document.getElementById('ef-name')?.value?.trim();
+  const bio = document.getElementById('ef-bio')?.value?.trim();
+  if (!name) { showFormError('ef-name', '角色名称不能为空'); return; }
+  if (!bio) { showFormError('ef-bio', '一句话简介不能为空'); return; }
+
+  const isEdit = !!appState.editingRoleId;
+  const tags = (document.getElementById('ef-tags')?.value || '').split(',').map(t => t.trim()).filter(Boolean);
+  const tools = (document.getElementById('ef-tools')?.value || '').split(',').map(t => t.trim()).filter(Boolean);
+  const data = {
+    name, bio, tags,
+    identity_background: document.getElementById('ef-identity_bg')?.value?.trim() || '',
+    point_of_view: document.getElementById('ef-pov')?.value?.trim() || '',
+    decision_style: document.getElementById('ef-decision')?.value || 'balanced',
+    responsibility_boundary: document.getElementById('ef-boundary')?.value?.trim() || '',
+    speaking_style: document.getElementById('ef-speaking')?.value?.trim() || '',
+    knowledge_refs: [...appState.tempKnowledgeSelection],
+    validated_knowledge_versions: [],
+    knowledge_boundary: document.getElementById('ef-k-boundary')?.value?.trim() || '',
+    tools,
+    collaboration_mode: document.getElementById('ef-collab')?.value || 'independent',
+    capability_boundary: document.getElementById('ef-cap-boundary')?.value?.trim() || '',
+    model_binding: {
+      provider: document.getElementById('ef-provider')?.value || 'openai',
+      model: document.getElementById('ef-model')?.value?.trim() || '',
+      temperature: parseFloat(document.getElementById('ef-temperature')?.value || 0.5),
+      max_tokens: parseInt(document.getElementById('ef-max-tokens')?.value || 2048)
+    },
+    memory_strategy: document.getElementById('ef-memory')?.value || 'session',
+    api_expose_config: { enabled: false }
+  };
+
+  if (isEdit) {
+    const role = getRoleById(appState.editingRoleId);
+    if (role) {
+      Object.assign(role, data, { updated_at: new Date().toISOString() });
+    }
+  } else {
+    const id = 'role-' + Date.now();
+    const initials = name.split('').filter(c => /[\u4e00-\u9fa5]/.test(c)).slice(0,2).join('') || name.substring(0,2).toUpperCase();
+    appState.roles.push({
+      id, ...data, status:'draft', current_version:null, avatar_initials:initials,
+      created_at: new Date().toISOString(), updated_at: new Date().toISOString(), versions:[]
+    });
+  }
+  appState.editingRoleId = null;
+  navigate('role-list');
+}
+
+function showFormError(fieldId, msg) {
+  const el = document.getElementById(fieldId);
+  if (!el) return;
+  el.classList.add('error');
+  el.scrollIntoView({ behavior:'smooth', block:'center' });
+  const existErr = el.parentElement.querySelector('.form-error');
+  if (existErr) existErr.remove();
+  const err = document.createElement('div');
+  err.className = 'form-error'; err.textContent = msg;
+  el.parentElement.appendChild(err);
+  el.addEventListener('input', () => { el.classList.remove('error'); const e = el.parentElement.querySelector('.form-error'); if(e) e.remove(); }, { once:true });
+}
+
+// ===================== KNOWLEDGE MODAL =====================
+function openKnowledgeModal() {
+  appState._knowledgeFilter = { status:'all', type:'all' };
+  document.getElementById('knowledgeModal').classList.add('open');
+  renderKnowledgeModal();
+}
+function closeKnowledgeModal() { document.getElementById('knowledgeModal').classList.remove('open'); }
+
+function renderKnowledgeModal() {
+  const f = appState._knowledgeFilter || { status:'all', type:'all' };
+  let items = [...appState.knowledgeItems];
+  if (f.status !== 'all') items = items.filter(k => k.status === f.status);
+  if (f.type !== 'all') items = items.filter(k => k.type === f.type);
+
+  let html = '';
+  html += '<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">';
+  ['all','reviewed','published','archived'].forEach(s => {
+    html += `<div class="filter-tab ${f.status===s?'active':''}" style="font-size:11px;" onclick="appState._knowledgeFilter.status='${s}';renderKnowledgeModal();">${s==='all'?'全部状态':s}</div>`;
+  });
+  html += '<span style="color:var(--border);margin:0 4px;">|</span>';
+  ['all','reference','note','summary'].forEach(t => {
+    html += `<div class="filter-tab ${f.type===t?'active':''}" style="font-size:11px;" onclick="appState._knowledgeFilter.type='${t}';renderKnowledgeModal();">${t==='all'?'全部类型':t}</div>`;
+  });
+  html += '</div>';
+
+  items.forEach(k => {
+    const selected = appState.tempKnowledgeSelection.includes(k.id);
+    html += `<div class="knowledge-item ${selected?'selected':''}" onclick="toggleKnowledgeSelect('${k.id}')">`;
+    html += `<div class="check">${selected?'✓':''}</div>`;
+    html += `<div class="knowledge-info"><div class="knowledge-title">${k.title}</div><div class="knowledge-meta"><span class="tag green">${k.type}</span>${getStatusBadge(k.status)}<span>${k.tags.map(t=>'<span class="tag blue">'+t+'</span>').join('')}</span></div>`;
+    html += `<div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">${k.summary}</div></div></div>`;
+  });
+
+  document.getElementById('knowledgeModalBody').innerHTML = html || '<div style="text-align:center;padding:40px;color:var(--text-light);">无匹配的知识条目</div>';
+  document.getElementById('knowledgeCount').textContent = `已选 ${appState.tempKnowledgeSelection.length} 个知识条目`;
+}
+
+function toggleKnowledgeSelect(kid) {
+  const idx = appState.tempKnowledgeSelection.indexOf(kid);
+  if (idx >= 0) appState.tempKnowledgeSelection.splice(idx, 1);
+  else appState.tempKnowledgeSelection.push(kid);
+  renderKnowledgeModal();
+}
+
+function confirmKnowledgeBinding() {
+  closeKnowledgeModal();
+  // Refresh knowledge list in edit form
+  const listEl = document.getElementById('ef-knowledge-list');
+  if (!listEl) return;
+  if (appState.tempKnowledgeSelection.length === 0) {
+    listEl.innerHTML = '<div style="color:var(--text-light);font-size:13px;padding:8px 0;">暂未绑定知识</div>';
+  } else {
+    listEl.innerHTML = appState.tempKnowledgeSelection.map(kid => {
+      const k = appState.knowledgeItems.find(ki => ki.id === kid);
+      if (!k) return '';
+      return `<div class="knowledge-item" style="cursor:default;border-color:var(--accent);background:rgba(14,165,233,0.03);"><div class="check" style="background:var(--accent);border-color:var(--accent);color:#fff;font-size:10px;">✓</div><div class="knowledge-info"><div class="knowledge-title">${k.title}</div><div class="knowledge-meta"><span class="tag green">${k.type}</span><span class="tag blue">${k.tags[0]}</span></div></div></div>`;
+    }).join('');
+  }
+}
+
+// ===================== PAGE: ROLE DETAIL =====================
+function renderRoleDetail(roleId) {
+  const r = getRoleById(roleId);
+  if (!r) { navigate('role-list'); return; }
+
+  document.getElementById('detailPageTitle').textContent = r.name;
+
+  let html = '';
+  html += `<div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">`;
+  html += `<div class="role-card-avatar" style="width:56px;height:56px;font-size:26px;">${r.avatar_initials}</div>`;
+  html += `<div><h3 style="font-size:20px;font-weight:600;">${r.name}</h3><div style="display:flex;align-items:center;gap:8px;margin-top:4px;">${getStatusBadge(r.status)}<span style="font-size:12px;color:var(--text-light);">${r.current_version || '无版本'}</span></div></div>`;
+  html += `<div style="margin-left:auto;display:flex;gap:6px;">`;
+  html += `<button class="btn btn-secondary btn-sm" onclick="navigate('role-edit','${r.id}')">编辑</button>`;
+  html += `<button class="btn btn-secondary btn-sm" onclick="navigate('role-test','${r.id}')">测试</button>`;
+  if (r.status === 'test') html += `<button class="btn btn-primary btn-sm" onclick="navigate('role-publish','${r.id}')">发布</button>`;
+  html += `</div></div>`;
+
+  html += '<div class="detail-grid">';
+
+  // L1
+  html += `<div class="card"><div class="card-header">🔤 L1 · 身份</div><div class="card-body">`;
+  html += `<div class="detail-card-label">一句话简介</div><div class="detail-card-value">${r.bio || '—'}</div>`;
+  html += `<div style="margin-top:8px;"><div class="detail-card-label">标签</div><div>${(r.tags||[]).map(t=>'<span class="tag">'+t+'</span>').join(' ') || '—'}</div></div>`;
+  html += `</div></div>`;
+
+  // L2
+  html += `<div class="card"><div class="card-header">🧠 L2 · 心智</div><div class="card-body">`;
+  html += `<div class="detail-card-label">定位描述</div><div class="detail-card-value">${r.identity_background || '—'}</div>`;
+  html += `<div style="margin-top:8px;"><div class="detail-card-label">立场偏好</div><div class="detail-card-value">${r.point_of_view || '—'}</div></div>`;
+  html += `<div style="margin-top:8px;"><div class="detail-card-label">决策风格</div><div class="detail-card-value">${getDecisionStyleLabel(r.decision_style)}</div></div>`;
+  html += `<div style="margin-top:8px;"><div class="detail-card-label">职责边界</div><div class="detail-card-value">${r.responsibility_boundary || '—'}</div></div>`;
+  html += `<div style="margin-top:8px;"><div class="detail-card-label">表达风格</div><div class="detail-card-value">${r.speaking_style || '—'}</div></div>`;
+  html += `</div></div>`;
+
+  // L3
+  html += `<div class="card"><div class="card-header">📚 L3 · 知识</div><div class="card-body">`;
+  html += `<div class="detail-card-label">已绑定知识（${r.knowledge_refs.length}）</div>`;
+  if (r.knowledge_refs.length > 0) {
+    r.knowledge_refs.forEach(kid => { const k=appState.knowledgeItems.find(ki=>ki.id===kid); if(k) html+=`<div style="font-size:12px;padding:4px 0;">📄 ${k.title}</div>`; });
+  } else { html += '<div class="detail-card-value" style="color:var(--text-light);">—</div>'; }
+  html += `<div style="margin-top:8px;"><div class="detail-card-label">知识边界</div><div class="detail-card-value">${r.knowledge_boundary || '—'}</div></div>`;
+  html += `</div></div>`;
+
+  // L4
+  html += `<div class="card"><div class="card-header">⚡ L4 · 能力</div><div class="card-body">`;
+  html += `<div class="detail-card-label">工具</div><div>${(r.tools||[]).map(t=>'<span class="tag blue">'+t+'</span>').join(' ') || '—'}</div>`;
+  html += `<div style="margin-top:8px;"><div class="detail-card-label">协作模式</div><div class="detail-card-value">${r.collaboration_mode === 'independent' ? '独立决策' : r.collaboration_mode === 'delegatable' ? '可委派' : '仅咨询'}</div></div>`;
+  html += `<div style="margin-top:8px;"><div class="detail-card-label">能力边界</div><div class="detail-card-value">${r.capability_boundary || '—'}</div></div>`;
+  html += `</div></div>`;
+
+  // L5
+  html += `<div class="card"><div class="card-header">⚙️ L5 · 配置</div><div class="card-body">`;
+  html += `<div class="detail-card-label">LLM</div><div class="detail-card-value">${r.model_binding.provider} / ${r.model_binding.model}</div>`;
+  html += `<div style="margin-top:8px;"><div class="detail-card-label">参数</div><div class="detail-card-value">temperature=${r.model_binding.temperature}, max_tokens=${r.model_binding.max_tokens}</div></div>`;
+  html += `<div style="margin-top:8px;"><div class="detail-card-label">记忆策略</div><div class="detail-card-value">${r.memory_strategy}</div></div>`;
+  html += `</div></div>`;
+
+  html += '</div>';
+
+  // Versions
+  if (r.versions.length > 0) {
+    html += '<div class="card" style="margin-top:24px;"><div class="card-header">📝 版本历史</div><div class="card-body">';
+    html += '<div class="timeline">';
+    r.versions.forEach(v => {
+      html += `<div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-date">${new Date(v.published_at).toLocaleString('zh-CN')}</div><div class="timeline-content"><strong>${v.number}</strong> — ${v.notes}</div></div>`;
+    });
+    html += '</div></div></div>';
+  }
+
+  document.getElementById('roleDetailBody').innerHTML = html;
+}
+
+// ===================== PAGE: ROLE TEST =====================
+function renderRoleTest(roleId) {
+  const r = getRoleById(roleId);
+  if (!r) { navigate('role-list'); return; }
+  document.getElementById('testPageTitle').textContent = '测试：' + r.name;
+
+  let html = '<div class="test-layout">';
+  // Chat panel
+  html += '<div class="chat-panel">';
+  html += '<div class="chat-messages" id="chatMessages">';
+
+  // Pre-filled demo conversations
+  const demos = [
+    { role:'user', text:'请分析这份财务报告中的主要风险点。' },
+    { role:'actor', text:'基于已绑定的《企业财务审计标准指引》，我识别出以下三个关键风险点：\n\n1. **应收账款周转率下降**：近三个季度从4.2降至2.8，低于行业均值3.5，提示回款能力弱化。\n2. **流动比率偏低**：当前1.15，接近警戒线。建议关注短期偿债压力。\n3. **研发费用资本化比例异常**：本期资本化率从往期15%跃升至32%，需审计核实是否符合〈企业会计准则第6号〉第7条。\n\n以上判断置信度约75%，建议与审计底稿交叉验证。', sources:['k-001'] },
+    { role:'user', text:'研发费用资本化的判断依据是什么？' },
+    { role:'actor', text:'《企业财务审计标准指引》第五章第3.2节明确规定：\n\n研发费用资本化需同时满足：\n- 技术可行性已完成论证\n- 有明确的市场应用计划\n- 具备足够的资源完成开发\n- 支出能够可靠计量\n\n若该公司无法提供上述四项的完整记录，建议将该部分费用转回损益表。', sources:['k-001'] }
+  ];
+
+  demos.forEach((msg, i) => {
+    if (msg.role === 'user') {
+      html += `<div class="chat-bubble user"><div class="chat-bubble-header">🧑 你</div>${msg.text}</div>`;
+    } else {
+      html += `<div class="chat-bubble role"><div class="chat-bubble-header">🎭 ${r.name}</div>${msg.text.replace(/\n/g,'<br>')}</div>`;
+    }
+  });
+
+  html += '</div>';
+  html += '<div class="chat-input-area">';
+  html += `<input type="text" placeholder="输入测试问题..." id="testInput" onkeypress="if(event.key==='Enter')sendTestMessage()">`;
+  html += `<button onclick="sendTestMessage()">➤</button>`;
+  html += '</div>';
+  html += '</div>';
+
+  // Source panel
+  html += '<div class="source-panel">';
+  html += '<div class="source-panel-header">📖 知识溯源</div>';
+  html += '<div class="source-panel-body">';
+  (r.knowledge_refs || []).forEach(kid => {
+    const k = appState.knowledgeItems.find(ki => ki.id === kid);
+    if (k) html += `<div class="source-item"><div class="source-item-title">📄 ${k.title}</div><div class="source-item-snippet">${k.summary}</div></div>`;
+  });
+  if ((r.knowledge_refs||[]).length === 0) html += '<div style="color:var(--text-light);font-size:12px;text-align:center;padding:20px;">角色未绑定知识</div>';
+  html += '</div></div>';
+
+  html += '</div>';
+  document.getElementById('roleTestBody').innerHTML = html;
+}
+
+function sendTestMessage() {
+  const input = document.getElementById('testInput');
+  if (!input || !input.value.trim()) return;
+  const text = input.value.trim();
+  input.value = '';
+  const container = document.getElementById('chatMessages');
+  if (!container) return;
+  container.innerHTML += `<div class="chat-bubble user"><div class="chat-bubble-header">🧑 你</div>${text}</div>`;
+  container.innerHTML += `<div class="chat-bubble role"><div class="chat-bubble-header">🎭 角色</div>这是模拟回复，实际运行时将基于角色绑定的知识库和LLM配置生成回答。</div>`;
+  container.scrollTop = container.scrollHeight;
+}
+
+// ===================== PAGE: ROLE PUBLISH =====================
+function renderRolePublish(roleId) {
+  const r = getRoleById(roleId);
+  if (!r) { navigate('role-list'); return; }
+  document.getElementById('publishPageTitle').textContent = '发布：' + r.name;
+
+  let html = '';
+  html += `<div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;"><div class="role-card-avatar" style="width:48px;height:48px;font-size:22px;">${r.avatar_initials}</div><div><h3 style="font-size:18px;font-weight:600;">${r.name}</h3><div style="display:flex;align-items:center;gap:8px;margin-top:4px;">${getStatusBadge(r.status)}<span style="font-size:12px;color:var(--text-light);">当前: ${r.current_version || '无版本'}</span></div></div></div>`;
+
+  // Non-test status hint
+  if (r.status !== 'test') {
+    html += `<div class="card" style="margin-bottom:20px;"><div class="card-body" style="text-align:center;padding:40px;color:var(--text-secondary);">`;
+    if (r.status === 'draft') html += '⏳ 角色仍在草稿状态，请先完善配置并进入测试。';
+    else if (r.status === 'published') html += '✅ 角色已发布，当前版本：' + r.current_version;
+    else if (r.status === 'archived') html += '📦 角色已归档。';
+    html += '</div></div>';
+  } else {
+    html += '<div class="card" style="margin-bottom:20px;"><div class="card-header">🚀 发布确认</div><div class="card-body">';
+    html += '<div class="form-group"><label class="form-label">发布说明 *</label><textarea class="form-textarea" id="pub-notes" placeholder="描述本次发布的变更内容" style="min-height:80px;"></textarea></div>';
+    html += '<button class="btn btn-primary btn-lg" onclick="publishRole()">✅ 确认发布</button>';
+    html += '</div></div>';
+  }
+
+  // Version history
+  if (r.versions.length > 0) {
+    html += '<div class="card"><div class="card-header">📜 版本历史</div><div class="card-body">';
+    html += '<table class="version-table"><thead><tr><th>版本号</th><th>发布时间</th><th>发布说明</th></tr></thead><tbody>';
+    r.versions.forEach(v => {
+      html += `<tr><td><strong>${v.number}</strong></td><td>${new Date(v.published_at).toLocaleString('zh-CN')}</td><td>${v.notes}</td></tr>`;
+    });
+    html += '</tbody></table></div></div>';
+  }
+
+  document.getElementById('rolePublishBody').innerHTML = html;
+}
+
+function publishRole() {
+  const roleId = appState.editingRoleId || window.location.hash.split('/')[2];
+  const r = getRoleById(roleId);
+  if (!r || r.status !== 'test') return;
+  const notes = document.getElementById('pub-notes')?.value?.trim();
+  if (!notes) { if(document.getElementById('pub-notes')) { document.getElementById('pub-notes').classList.add('error'); setTimeout(()=>document.getElementById('pub-notes').classList.remove('error'),2000); } return; }
+
+  const verNum = 'v' + (r.versions.length + 1) + '.0';
+  r.versions.unshift({ id:'ver-' + Date.now(), number:verNum, published_at:new Date().toISOString(), notes });
+  r.status = 'published';
+  r.current_version = verNum;
+  r.validated_knowledge_versions = r.knowledge_refs.map(kid => ({ kid, version:'current', validated_at:new Date().toISOString() }));
+  navigate('role-list');
+}
+
+// Init
+handleRoute();
+
+// ── API Backend Integration ──
+const API_BASE = 'http://localhost:8000';
+async function apiHealth() { try { const r = await fetch(API_BASE+'/health'); return r.ok; } catch { return false; } }
+
+// 页面加载时检测后端连通性
+(async () => {
+  const ok = await apiHealth();
+  const indicator = document.createElement('div');
+  indicator.id = 'api-status';
+  indicator.style.cssText = `position:fixed;bottom:12px;right:12px;padding:4px 12px;border-radius:20px;font-size:11px;font-family:Inter,sans-serif;z-index:9999;`;
+  indicator.style.background = ok ? '#22C55E20' : '#EF444420';
+  indicator.style.color = ok ? '#16A34A' : '#DC2626';
+  indicator.style.border = `1px solid ${ok ? '#22C55E40' : '#EF444440'}`;
+  indicator.textContent = ok ? '🟢 API 已连接' : '🔴 API 未连接';
+  document.body.appendChild(indicator);
+})();
+
+// CRUD helpers (可被原型页面脚本调用)
+async function loadRoles() {
+  const r = await fetch(API_BASE+'/role-assets');
+  return r.json();
+}
+async function createRole(data) {
+  const r = await fetch(API_BASE+'/role-assets', {
+    method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)
+  });
+  return r.json();
+}
+</script>
+<script src="api-integration.js"></script>
+<script src="ui-enhancements.js"></script>
+</body>
+</html>

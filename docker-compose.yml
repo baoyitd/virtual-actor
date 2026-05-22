@@ -1,0 +1,50 @@
+services:
+  app:
+    build: .
+    ports:
+      - "${APP_PORT:-8000}:8000"
+    environment:
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASSWORD=${DB_PASSWORD:-123456}
+      - DB_NAME=virtual_actor
+      - KNOWLEDGE_API_BASE=http://host.docker.internal:3000
+      - KNOWLEDGE_HEALTH_URL=http://host.docker.internal:3099/api/health
+      - KNOWLEDGE_API_TOKEN=${KNOWLEDGE_API_TOKEN:-}
+      - KNOWLEDGE_AUTH_EMAIL=${KNOWLEDGE_AUTH_EMAIL:-}
+      - KNOWLEDGE_AUTH_PASSWORD=${KNOWLEDGE_AUTH_PASSWORD:-}
+      - LLM_PROVIDER=custom
+      - LLM_API_KEY=${LLM_API_KEY:-}
+      - LLM_BASE_URL=${LLM_BASE_URL:-}
+      - AUTH_USERNAME=${AUTH_USERNAME:-admin}
+      - AUTH_PASSWORD=${AUTH_PASSWORD:-admin123}
+      - AUTH_SECRET=${AUTH_SECRET:-change-me-before-trial}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  mysql:
+    image: mysql:8.0
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-123456}
+      MYSQL_DATABASE: virtual_actor
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  mysql_data:

@@ -1,0 +1,35 @@
+# Local environment and secrets
+.env
+.env.local
+*.local
+
+# Python
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Node / frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Runtime data and logs
+data/
+*.log
+*.sqlite
+*.sqlite3
+*.db
+
+# OS and editor files
+.DS_Store
+*.swp
+*.swo
+
+# Local agent workspace metadata
+.codebuddy/
