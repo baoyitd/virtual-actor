@@ -41,3 +41,7 @@ data/
 
 # UI verification screenshots (evidence kept in working tree, not committed)
 tmp/
+---
+# Playwright snapshot temp files
+*-page.yaml
+test-results/scripts-*/
