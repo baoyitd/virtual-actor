@@ -7,6 +7,15 @@ from app.models.role_asset import RoleAsset  # noqa
 from app.models.role_version import RoleVersion, RoleVersionField  # noqa
 from app.models.knowledge_ref import KnowledgeRef, ValidatedKnowledgeVersion  # noqa
 from app.models.test_run import TestRunRecord  # noqa
+from app.models.usage_record import UsageRecord  # noqa
+from app.models.test_validation_record import TestValidationRecord  # noqa
+from app.models.ops_signal import OpsSignal  # noqa
+from app.models.data_asset import DataAsset  # noqa
+from app.models.role_briefing import RoleBriefing  # noqa
+from app.models.export_package import RoleExportPackage  # noqa
+from app.models.business_domain import BusinessDomain  # noqa
+from app.models.enterprise_role import EnterpriseRole  # noqa
+from app.models.staff_directory import StaffDirectory  # noqa
 
 
 async def init_db():

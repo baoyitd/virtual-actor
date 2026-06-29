@@ -35,3 +35,9 @@ data/
 
 # Local agent workspace metadata
 .codebuddy/
+
+# Playwright CLI snapshots
+.playwright-cli/
+
+# UI verification screenshots (evidence kept in working tree, not committed)
+tmp/

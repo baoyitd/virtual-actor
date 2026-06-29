@@ -13,7 +13,20 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.database import engine
-from app.routers import auth, role_assets, role_versions, role_test, role_knowledge
+from app.routers import (
+    auth,
+    config,
+    data_assets,
+    role_ai,
+    role_assets,
+    role_consume,
+    role_dashboard,
+    role_exports,
+    role_knowledge,
+    role_marketplace,
+    role_test,
+    role_versions,
+)
 
 # ── 日志 ──
 logging.basicConfig(
@@ -51,6 +64,11 @@ async def lifespan(app: FastAPI):
             logger.error("数据库迁移失败: %s", last_error)
             raise RuntimeError("数据库迁移失败，应用启动已阻断")
 
+        from app.database import AsyncSessionLocal
+        async with AsyncSessionLocal() as session:
+            from app.routers.config import seed_config_data
+            await seed_config_data(session)
+
     yield
     await engine.dispose()
     logger.info("数据库连接已释放")
@@ -59,7 +77,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Virtual Actor — 角色产品",
     description="虚拟角色资产管理 API",
-    version="0.2.0",
+    version="0.5.1",
     lifespan=lifespan,
 )
 
@@ -99,17 +117,23 @@ async def global_exception_handler(request: Request, exc: Exception):
     return JSONResponse(status_code=500, content={"detail": "服务器内部错误"})
 
 
-# ── 路由 ──
+app.include_router(role_consume.router)
+app.include_router(role_ai.router)
+app.include_router(role_marketplace.router)
+app.include_router(role_dashboard.router)
 app.include_router(auth.router)
 app.include_router(role_assets.router)
 app.include_router(role_versions.router)
 app.include_router(role_test.router)
 app.include_router(role_knowledge.router)
+app.include_router(role_exports.router)
+app.include_router(data_assets.router)
+app.include_router(config.router)
 
 
 @app.get("/health")
 async def health_check():
-    return {"status": "ok", "service": "virtual-actor", "version": "0.2.0"}
+    return {"status": "ok", "service": "virtual-actor", "version": "0.5.1"}
 
 
 @app.get("/health/knowledge-platform")

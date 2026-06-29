@@ -2,7 +2,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import String, Integer, Text, DateTime, Boolean, JSON, ForeignKey
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, JSON, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
@@ -23,8 +23,21 @@ class RoleVersion(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
     role: Mapped["RoleAsset"] = relationship(back_populates="versions")
-    fields: Mapped[list["RoleVersionField"]] = relationship(back_populates="version", cascade="all, delete-orphan")
-    validated_knowledge: Mapped[list["ValidatedKnowledgeVersion"]] = relationship(back_populates="version", cascade="all, delete-orphan")
+    fields: Mapped[list["RoleVersionField"]] = relationship(
+        back_populates="version", cascade="all, delete-orphan"
+    )
+    knowledge_refs: Mapped[list["KnowledgeRef"]] = relationship(
+        back_populates="version", cascade="all, delete-orphan"
+    )
+    validated_knowledge: Mapped[list["ValidatedKnowledgeVersion"]] = relationship(
+        back_populates="version", cascade="all, delete-orphan"
+    )
+    briefing: Mapped["RoleBriefing | None"] = relationship(
+        back_populates="version", cascade="all, delete-orphan", uselist=False
+    )
+    export_packages: Mapped[list["RoleExportPackage"]] = relationship(
+        back_populates="version", cascade="all, delete-orphan"
+    )
 
 
 class RoleVersionField(Base):

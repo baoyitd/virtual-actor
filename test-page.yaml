@@ -1,0 +1,121 @@
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]: VA
+      - generic [ref=e7]:
+        - strong [ref=e8]: 角色资产平台
+        - text: Role Asset Platform
+    - navigation [ref=e9]:
+      - link "资产市场" [ref=e10] [cursor=pointer]:
+        - /url: "#/marketplace"
+        - img [ref=e11]
+        - text: 资产市场
+      - link "角色资产" [ref=e14] [cursor=pointer]:
+        - /url: "#/"
+        - img [ref=e15]
+        - text: 角色资产
+      - link "运营看板" [ref=e20] [cursor=pointer]:
+        - /url: "#/dashboard"
+        - img [ref=e21]
+        - text: 运营看板
+      - link "数据资产管理" [ref=e23] [cursor=pointer]:
+        - /url: "#/data-assets"
+        - img [ref=e24]
+        - text: 数据资产管理
+      - generic [ref=e28]: v0.5 冻结骨架：L1-L4 / 使用前说明与调用预览 / 治理发布 / 外供复用
+    - generic [ref=e29]:
+      - img [ref=e30]
+      - generic [ref=e33]:
+        - strong [ref=e34]: admin
+        - text: 内部商业试用
+      - button "退出登录" [ref=e35] [cursor=pointer]:
+        - img [ref=e36]
+  - main [ref=e39]:
+    - generic [ref=e40]:
+      - generic [ref=e41]:
+        - link "返回角色概览" [ref=e42] [cursor=pointer]:
+          - /url: "#/roles/7ce9263b-379d-44ac-ae2a-53911d8c08c4"
+          - img [ref=e43]
+          - text: 返回角色概览
+        - link "使用前说明" [ref=e45] [cursor=pointer]:
+          - /url: "#/roles/7ce9263b-379d-44ac-ae2a-53911d8c08c4/briefing"
+      - generic [ref=e47]:
+        - paragraph [ref=e48]: Validation Desk
+        - heading "试用与测试" [level=1] [ref=e49]
+        - paragraph [ref=e50]: 这里的唯一目标，是快速判断这个角色在当前版本下是否按预期工作。
+      - generic [ref=e51]:
+        - complementary [ref=e52]:
+          - generic [ref=e53]:
+            - paragraph [ref=e54]: Role Flow
+            - strong [ref=e55]: v0.5 主链路
+            - generic [ref=e56]: 先定义与说明，保存说明后进入测试；发布后进入外供与调用。
+          - generic [ref=e57]:
+            - link "01 角色定义工作台 L1-L4 定义骨架" [ref=e58] [cursor=pointer]:
+              - /url: "#/roles/7ce9263b-379d-44ac-ae2a-53911d8c08c4/edit"
+              - img [ref=e59]
+              - generic [ref=e63]:
+                - strong [ref=e64]: 01 角色定义工作台
+                - text: L1-L4 定义骨架
+            - link "02 使用前说明 说明卡与调用预览" [ref=e65] [cursor=pointer]:
+              - /url: "#/roles/7ce9263b-379d-44ac-ae2a-53911d8c08c4/briefing"
+              - img [ref=e66]
+              - generic [ref=e69]:
+                - strong [ref=e70]: 02 使用前说明
+                - text: 说明卡与调用预览
+            - link "03 试用与测试 测试当前版本" [ref=e71] [cursor=pointer]:
+              - /url: "#/roles/7ce9263b-379d-44ac-ae2a-53911d8c08c4/test"
+              - img [ref=e72]
+              - generic [ref=e75]:
+                - strong [ref=e76]: 03 试用与测试
+                - text: 测试当前版本
+            - link "04 治理与发布 治理项 + 发布 / 归档" [ref=e77] [cursor=pointer]:
+              - /url: "#/roles/7ce9263b-379d-44ac-ae2a-53911d8c08c4/governance"
+              - img [ref=e78]
+              - generic [ref=e81]:
+                - strong [ref=e82]: 04 治理与发布
+                - text: 治理项 + 发布 / 归档
+            - link "05 外供与调用 外供包 + 验证调用 + 记录" [ref=e83] [cursor=pointer]:
+              - /url: "#/roles/7ce9263b-379d-44ac-ae2a-53911d8c08c4/exports"
+              - img [ref=e84]
+              - generic [ref=e86]:
+                - strong [ref=e87]: 05 外供与调用
+                - text: 外供包 + 验证调用 + 记录
+        - generic [ref=e88]:
+          - generic [ref=e90]:
+            - strong [ref=e91]: 快消行业业务分析专家
+            - generic [ref=e92]: ·
+            - generic [ref=e93]: 版本 12fa1946...
+            - generic [ref=e94]: ·
+            - generic [ref=e95]: 结构化输出
+            - generic [ref=e96]: ·
+            - generic [ref=e97]: 决策建议
+            - generic [ref=e98]: ·
+            - generic [ref=e99]: 已保存
+            - generic [ref=e100]: ·
+            - generic [ref=e101]: 已绑定真实知识 / 未授权结构化业务数据
+          - generic [ref=e102]:
+            - generic [ref=e104]:
+              - heading "测试查询" [level=2] [ref=e105]
+              - paragraph [ref=e106]: 用能暴露角色能力的问题来测，重点看它是否真的用了你绑定的知识、数据和输出契约。
+            - generic [ref=e107]:
+              - generic [ref=e108]: 问题
+              - textbox "问题" [ref=e109]:
+                - /placeholder: 输入业务问题，验证该角色在当前知识 / 数据 / 输出配置下的表现。
+                - text: 请基于当前角色给出一份判断。
+            - generic [ref=e110]:
+              - generic [ref=e111]: 业务上下文（可选）
+              - textbox "业务上下文（可选）" [ref=e112]:
+                - /placeholder: 补充业务背景、目标对象或关键约束。
+            - button "开始测试" [ref=e114] [cursor=pointer]:
+              - img [ref=e115]
+              - text: 开始测试
+          - generic [ref=e118]:
+            - generic [ref=e120]:
+              - heading "测试结果" [level=2] [ref=e121]
+              - paragraph [ref=e122]: 先看这次是否命中，再决定是回去补角色定义，还是继续进入治理与发布。
+            - generic [ref=e123]: 当前还没有测试结果，输入问题后开始测试。
+          - generic [ref=e124]:
+            - link "回 01 补角色定义" [ref=e125] [cursor=pointer]:
+              - /url: "#/roles/7ce9263b-379d-44ac-ae2a-53911d8c08c4/edit"
+            - link "回 02 确认说明卡" [ref=e126] [cursor=pointer]:
+              - /url: "#/roles/7ce9263b-379d-44ac-ae2a-53911d8c08c4/briefing"

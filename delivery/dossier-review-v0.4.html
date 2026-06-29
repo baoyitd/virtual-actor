@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>v0.4.0 Dossier 终审汇报</title>
+<style>
+:root {
+  --bg: #f8f9fa;
+  --card: #ffffff;
+  --border: #dee2e6;
+  --accent: #2563eb;
+  --accent-light: #dbeafe;
+  --green: #16a34a;
+  --green-light: #dcfce7;
+  --red: #dc2626;
+  --red-light: #fee2e2;
+  --orange: #d97706;
+  --orange-light: #fef3c7;
+  --gray: #64748b;
+  --gray-light: #f1f5f9;
+  --text: #1e293b;
+  --text2: #475569;
+  --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: var(--bg); color: var(--text); font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; line-height: 1.6; }
+.container { max-width: 960px; margin: 0 auto; padding: 24px 32px; }
+h1 { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+.subtitle { font-size: 14px; color: var(--gray); margin-bottom: 32px; }
+h2 { font-size: 20px; font-weight: 700; margin: 40px 0 16px; padding-left: 12px; border-left: 4px solid var(--accent); }
+h3 { font-size: 16px; font-weight: 600; margin: 24px 0 12px; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 20px 24px; margin-bottom: 16px; box-shadow: var(--shadow); }
+.card.highlight { border-left: 4px solid var(--accent); }
+.card.success { border-left: 4px solid var(--green); background: var(--green-light); }
+.card.warning { border-left: 4px solid var(--orange); background: var(--orange-light); }
+.card.danger { border-left: 4px solid var(--red); background: var(--red-light); }
+.tag { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 4px; margin-right: 6px; }
+.tag.p0 { background: var(--red-light); color: var(--red); }
+.tag.p1 { background: var(--orange-light); color: var(--orange); }
+.tag.p2 { background: var(--accent-light); color: var(--accent); }
+.tag.gap { background: var(--red-light); color: var(--red); }
+.tag.adv { background: var(--green-light); color: var(--green); }
+table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 14px; }
+th { background: var(--gray-light); text-align: left; padding: 10px 12px; font-weight: 600; border-bottom: 2px solid var(--border); }
+td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+tr:last-child td { border-bottom: none; }
+.summary-box { background: var(--accent-light); border-radius: 8px; padding: 20px 24px; margin-bottom: 24px; }
+.summary-box p { font-size: 15px; line-height: 1.7; }
+ul.bullet { margin: 8px 0 8px 20px; }
+ul.bullet li { margin-bottom: 6px; }
+.fn { font-size: 13px; color: var(--text2); margin-top: 8px; padding: 8px 12px; background: var(--gray-light); border-radius: 4px; }
+.fn::before { content: "注： "; font-weight: 600; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 12px 0; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin: 12px 0; }
+.mini-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 16px; box-shadow: var(--shadow); }
+.mini-card h4 { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+.mini-card p { font-size: 13px; color: var(--text2); }
+.compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin: 12px 0; }
+.compare-grid .col { padding: 16px 20px; }
+.compare-grid .col.left { background: var(--gray-light); border-radius: 8px 0 0 8px; }
+.compare-grid .col.right { background: var(--green-light); border-radius: 0 8px 8px 0; }
+.compare-grid h4 { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+.compare-grid ul { font-size: 13px; margin-left: 16px; }
+.compare-grid ul li { margin-bottom: 4px; }
+.decision-section { margin-top: 40px; padding: 24px; background: var(--card); border: 2px solid var(--accent); border-radius: 12px; }
+.decision-section h2 { border-left-color: var(--accent); margin-top: 0; }
+.decision-options { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-top: 16px; }
+.decision-opt { padding: 16px; border: 1px solid var(--border); border-radius: 8px; text-align: center; }
+.decision-opt h4 { font-size: 15px; margin-bottom: 8px; }
+.decision-opt p { font-size: 13px; color: var(--text2); }
+.decision-opt.approve { border-color: var(--green); background: var(--green-light); }
+.decision-opt.reject { border-color: var(--red); background: var(--red-light); }
+.decision-opt.modify { border-color: var(--orange); background: var(--orange-light); }
+@media (max-width: 640px) {
+  .grid, .grid-3, .compare-grid, .decision-options { grid-template-columns: 1fr; }
+  .compare-grid .col.left { border-radius: 8px 8px 0 0; }
+  .compare-grid .col.right { border-radius: 0 0 8px 8px; }
+  .container { padding: 16px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- Header -->
+<h1>v0.4.0 Dossier 终审汇报</h1>
+<p class="subtitle">角色资产化与使用入口 | 基线 v0.3.0-commercial-trial Accepted | 2026-05-25 | Formal Status: Draft</p>
+
+<!-- 核心结论 -->
+<div class="summary-box">
+<h2 style="margin:0 0 12px; border-left:none; padding:0;">核心结论</h2>
+<p>经过研究分析、竞品深度对比、集团企业场景建模和两轮 AI 规划复审，dossier 得出以下结论：</p>
+<p style="font-weight:600; margin-top:8px;">
+1. virtual-actor 在<strong>版本治理、知识追溯和质量门禁</strong>上相比所分析竞品具有结构性相对优势，但在<strong>资产治理属性、正式使用入口和被系统调用</strong>三个维度存在缺口。<br>
+2. v0.4 应优先补这三个缺口，主线定位为"角色资产化与使用入口"。<br>
+3. 模板库（DD-06）未被真实用户场景推导，已移出本轮 Scope In。<br>
+4. A3 执行动作涉及跨系统读写，v0.4 不实现，只定义模型。<br>
+5. 消费侧 API 只产出设计说明文档，不改变已有接口。
+</p>
+<div class="fn">所有优势判断均基于"当前抽样竞品和已核对证据范围内的相对优势"口径，不使用绝对表述。</div>
+</div>
+
+<!-- Section 1: 为什么做 v0.4 -->
+<h2>1. 为什么做 v0.4：v0.3 已建能力与核心限制</h2>
+
+<div class="card">
+<h3>v0.3 已建 7 项可追溯能力</h3>
+<table>
+<thead><tr><th>能力</th><th>实现形态</th><th>追溯证据</th></tr></thead>
+<tbody>
+<tr><td>角色五层配置</td><td>RoleAsset + RoleVersion + RoleVersionField (EAV)</td><td>US-02 / U01 / H02</td></tr>
+<tr><td>知识绑定</td><td>KnowledgeRef + 文件级选择 + kb_id 去重检索</td><td>US-02 / U01 / H02</td></tr>
+<tr><td>角色测试</td><td>TestService + LLMService + PromptBuilder</td><td>US-03 / U02 / H03</td></tr>
+<tr><td>人工评分</td><td>1-5 星评分 + 评分历史展示</td><td>US-03 / U02 / H03</td></tr>
+<tr><td>发布与版本</td><td>不可覆写 RoleVersion + ValidatedKnowledgeVersion</td><td>US-04 / U03 / H04</td></tr>
+<tr><td>编辑已发布角色</td><td>fork 新草稿 + 旧版本保持 published</td><td>US-05 / U04 / H05</td></tr>
+<tr><td>React + Docker Compose</td><td>HashRouter 5 页面 + FastAPI + MySQL 8 + Alembic</td><td>H01-H05 全链路</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="card warning">
+<h3>v0.3 的 7 项核心限制（影响 v0.4 方向判断）</h3>
+<table>
+<thead><tr><th>限制</th><th>影响</th></tr></thead>
+<tbody>
+<tr><td><strong>缺少资产治理属性</strong> — 无分类、所有者、适用场景、可见范围</td><td>角色仍是"配置对象"，不是"企业资产"</td></tr>
+<tr><td><strong>只有测试台，没有正式使用台</strong> — 测试记录和正式使用未区分</td><td>无法形成"使用"闭环</td></tr>
+<tr><td><strong>无消费侧产品入口</strong> — 只有管理侧内部 API</td><td>无法支撑资产分发和调用</td></tr>
+<tr><td><strong>knowledge_boundary 全链路缺失</strong> — schema/API/UI/前端类型均无此字段</td><td>角色无法表达"我知道什么/我不知道什么"</td></tr>
+<tr><td><strong>capability_boundary 已完整暴露</strong> — schema/API/UI/详情页均有，但展示可强化</td><td>已有基础入口，可做资产化展示</td></tr>
+<tr><td><strong>缺少中文枚举映射</strong> — status/layer 显示英文原始值</td><td>降低中文用户理解效率</td></tr>
+<tr><td><strong>历史版本无详情入口</strong> — 只看版本号列表</td><td>无法回溯角色演进历程</td></tr>
+</tbody>
+</table>
+</div>
+
+<!-- Section 2: 竞品分析 -->
+<h2>2. 竞品深度分析：市场不缺 Agent Builder，缺角色资产治理产品</h2>
+
+<div class="card">
+<h3>7 类竞品能力矩阵核心发现</h3>
+<table>
+<thead><tr><th>维度</th><th>竞品现状</th><th>virtual-actor</th></tr></thead>
+<tbody>
+<tr><td>版本状态机</td><td>无竞品有完整状态机</td><td><span class="tag adv">相对优势</span> draft/test/published/archived + 不可覆写</td></tr>
+<tr><td>知识版本追溯</td><td>竞品均不支持知识内容版本追踪</td><td><span class="tag adv">相对优势</span> KnowledgeRef + ValidatedKnowledgeVersion</td></tr>
+<tr><td>质量门禁</td><td>竞品测试均为调试性质，非门禁</td><td><span class="tag adv">相对优势</span> 测试结果作为发布前置条件</td></tr>
+<tr><td>角色结构化定义</td><td>多为 flat prompt</td><td><span class="tag adv">相对优势</span> 5 层 EAV 字段模型</td></tr>
+<tr><td>资产治理属性</td><td>竞品均未将角色作为企业资产治理</td><td><span class="tag gap">缺口</span> 需补分类、所有者、适用场景</td></tr>
+<tr><td>正式使用入口</td><td>竞品只有调试/测试入口</td><td><span class="tag gap">缺口</span> 需补使用台和使用记录</td></tr>
+<tr><td>被系统调用</td><td>CrewAI 有 A2A，MAF 有 A2A 兼容</td><td><span class="tag gap">缺口</span> 需补消费侧入口设计</td></tr>
+</tbody>
+</table>
+<div class="fn">竞品覆盖：CrewAI、OpenPersona、FastGPT、Open WebUI、Coze/Dify/百炼、MS Copilot Studio/MAF、Character.AI。每项判断均有官方文档/源码证据链（见 research-conclusion.md §2.4）。</div>
+</div>
+
+<!-- Section 3: 用户场景推导 -->
+<h2>3. 用户场景推导：4 个场景推导出全部 Scope In</h2>
+
+<div class="grid">
+<div class="mini-card">
+<h4>SC-01：部门负责人创建并发布经营分析角色</h4>
+<p>角色管理者创建角色，绑定知识库，测试后发布给全集团使用。<br><strong>推导出</strong>：DD-01, DD-02, DD-03, DD-05</p>
+</div>
+<div class="mini-card">
+<h4>SC-02：一线业务人员使用已发布的制度顾问角色</h4>
+<p>角色使用者查询制度条款，获取合规建议。痛点：使用记录和测试记录混在一起。<br><strong>推导出</strong>：DD-03</p>
+</div>
+<div class="mini-card">
+<h4>SC-03：合规部门追溯角色资产的知识来源和版本</h4>
+<p>角色治理者追溯知识版本，确认是否基于最新制度。痛点：英文枚举、版本无详情。<br><strong>推导出</strong>：DD-01, DD-02, DD-05, DD-07, DD-08</p>
+</div>
+<div class="mini-card">
+<h4>SC-04：IT 平台团队评估角色资产外部调用方案</h4>
+<p>业务系统集成者评估角色如何被决策产品调用。痛点：只有管理侧 API。<br><strong>推导出</strong>：DD-04</p>
+</div>
+</div>
+
+<div class="card highlight">
+<h3>场景推导汇总</h3>
+<table>
+<thead><tr><th>场景</th><th>推导出的 DD 项</th></tr></thead>
+<tbody>
+<tr><td>SC-01</td><td>DD-01, DD-02, DD-03, DD-05</td></tr>
+<tr><td>SC-02</td><td>DD-03</td></tr>
+<tr><td>SC-03</td><td>DD-01, DD-02, DD-05, DD-07, DD-08</td></tr>
+<tr><td>SC-04</td><td>DD-04</td></tr>
+</tbody>
+</table>
+<div class="fn">DD-06（模板库）未被上述 4 个场景推导，已移出 v0.4 Scope In。后续版本补足场景后重新评估。</div>
+</div>
+
+<!-- Section 4: Scope In / Out -->
+<h2>4. 范围决策：Scope In 与 Scope Out</h2>
+
+<div class="card">
+<h3>Scope In（7 项）</h3>
+<table>
+<thead><tr><th>ID</th><th>范围项</th><th>优先级</th><th>说明</th></tr></thead>
+<tbody>
+<tr><td>DD-01</td><td>角色资产治理属性</td><td><span class="tag p0">P0</span></td><td>补分类、所有者/维护人、适用业务域、可见范围</td></tr>
+<tr><td>DD-02</td><td>边界声明补齐与强化</td><td><span class="tag p0">P0</span></td><td>knowledge_boundary 全链路补齐 + capability_boundary 资产化展示和语义强化</td></tr>
+<tr><td>DD-03</td><td>正式使用台</td><td><span class="tag p0">P0</span></td><td>区分测试台和使用台，usage_records 冻结 role_version_id</td></tr>
+<tr><td>DD-04</td><td>消费侧 API 设计说明</td><td><span class="tag p1">P1</span></td><td>纯文档产出，不改变接口</td></tr>
+<tr><td>DD-05</td><td>执行能力模型定义</td><td><span class="tag p1">P1</span></td><td>A1/A2/A3 标注，版本级属性，进入 EAV 和版本快照</td></tr>
+<tr><td>DD-07</td><td>历史版本详情入口</td><td><span class="tag p2">P2</span></td><td>版本列表页 + 版本内容查看</td></tr>
+<tr><td>DD-08</td><td>详情页枚举中文映射</td><td><span class="tag p2">P2</span></td><td>status/layer 枚举显示中文</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="card danger">
+<h3>Scope Out（9 项）</h3>
+<ul class="bullet">
+<li><strong>A3 执行动作的实现</strong> — 风险高，需跨项目裁决</li>
+<li><strong>决策产品集成实现</strong> — 需另行立项和治理确认</li>
+<li><strong>公共契约变更</strong> — v0.4 不新增或修改公共契约字段</li>
+<li><strong>跨项目读写边界变更</strong> — 不改变知识平台当前依赖边界</li>
+<li><strong>AI 辅助填充角色配置</strong> — 当前不纳入</li>
+<li><strong>角色模板库（DD-06）</strong> — 未被真实用户场景推导，移出本轮承诺</li>
+<li><strong>多角色协作编排</strong> — 只定义概念，不实现委派机制</li>
+<li><strong>RBAC / 多租户 / SaaS</strong> — v0.3 Scope Out 继续生效</li>
+<li><strong>不得把 mock/stub/fixture 描述为真实集成证据</strong></li>
+</ul>
+</div>
+
+<!-- Section 5: 关键设计增量 -->
+<h2>5. 关键设计增量：数据模型与链路变化</h2>
+
+<div class="card">
+<h3>DD-01：角色资产治理属性（5 个字段，资产级，不进版本快照）</h3>
+<table>
+<thead><tr><th>字段</th><th>枚举值</th><th>默认值</th><th>填写位置</th><th>是否进版本快照</th></tr></thead>
+<tbody>
+<tr><td>category</td><td>行业专家/职能助手/制度顾问/项目管理/自定义</td><td>自定义</td><td>创建/编辑页（下拉）</td><td><strong>否</strong></td></tr>
+<tr><td>owner</td><td>自由文本</td><td>空（创建时必填）</td><td>创建/编辑页（文本）</td><td><strong>否</strong></td></tr>
+<tr><td>maintainer</td><td>自由文本</td><td>空（可选）</td><td>创建/编辑页（文本）</td><td><strong>否</strong></td></tr>
+<tr><td>business_domain</td><td>自由文本</td><td>空（可选）</td><td>创建/编辑页（文本）</td><td><strong>否</strong></td></tr>
+<tr><td>visibility</td><td>内部/部门/公开</td><td>内部</td><td>创建/编辑页（下拉）</td><td><strong>否</strong></td></tr>
+</tbody>
+</table>
+<div class="fn">5 个字段均为 RoleAsset 级属性，不进入版本快照，仅用于展示和筛选。v0.4 不基于 visibility 实现任何访问控制逻辑，不暗含 RBAC 或多租户权限能力。</div>
+</div>
+
+<div class="card">
+<h3>DD-02：边界声明补齐与强化</h3>
+<div class="compare-grid">
+<div class="col left">
+<h4>knowledge_boundary（全链路缺失，需补齐）</h4>
+<ul>
+<li>schema 写入口：<strong>不存在</strong> → 补 RoleCreate + RoleUpdate</li>
+<li>schema 读入口：<strong>不存在</strong> → 补 RoleDetail</li>
+<li>EAV 持久化：LAYER_MAP 有映射，但 _save_fields <strong>不遍历</strong></li>
+<li>前端类型：<strong>不存在</strong></li>
+<li>UI 写入口：<strong>不存在</strong> → 补 textarea</li>
+<li>UI 读入口：<strong>不存在</strong> → 补详情页展示</li>
+</ul>
+</div>
+<div class="col right">
+<h4>capability_boundary（全链路已有，做语义强化）</h4>
+<ul>
+<li>schema 写入口：<strong>已存在</strong></li>
+<li>schema 读入口：<strong>已存在</strong></li>
+<li>EAV 持久化：<strong>已存在</strong></li>
+<li>前端类型：<strong>已存在</strong></li>
+<li>UI 写入口：<strong>已存在</strong> textarea</li>
+<li>UI 读入口：<strong>已存在</strong> → 做资产化语义强化</li>
+</ul>
+</div>
+</div>
+</div>
+
+<div class="card">
+<h3>DD-03：正式使用台（新增概念）</h3>
+<div class="compare-grid">
+<div class="col left">
+<h4>测试台（已有）</h4>
+<ul>
+<li>目的：验证角色质量，决定是否发布</li>
+<li>可用条件：test 状态</li>
+<li>记录：test_runs</li>
+<li>评分：1-5 星</li>
+<li>谁使用：角色管理者 / 测试人员</li>
+</ul>
+</div>
+<div class="col right">
+<h4>使用台（v0.4 新增）</h4>
+<ul>
+<li>目的：正式使用已发布角色获取专业建议</li>
+<li>可用条件：published 状态</li>
+<li>记录：usage_records（新增）</li>
+<li>评分：v0.4 不实现</li>
+<li>谁使用：一线员工 / 管理层</li>
+</ul>
+</div>
+</div>
+<h3 style="margin-top:16px;">usage_records 数据模型</h3>
+<table>
+<thead><tr><th>字段</th><th>类型</th><th>说明</th></tr></thead>
+<tbody>
+<tr><td>id</td><td>String(36) UUID (PK)</td><td>与 RoleAsset.id、RoleVersion.id 口径一致</td></tr>
+<tr><td>role_asset_id</td><td>String(36) UUID (FK)</td><td>关联角色资产</td></tr>
+<tr><td>role_version_id</td><td>String(36) UUID (FK) <strong>冻结</strong></td><td>使用时快照 published 版本，后续版本变更不影响此记录</td></tr>
+<tr><td>user_id</td><td>String(64)</td><td>使用者标识（v0.4 不实现 RBAC）</td></tr>
+<tr><td>query</td><td>String(2048)</td><td>使用者输入的查询内容</td></tr>
+<tr><td>response</td><td>String(8192)</td><td>角色回复内容</td></tr>
+<tr><td>knowledge_snapshot</td><td>String (JSON, 可选)</td><td>知识版本快照摘要（v0.4 不强制填写）</td></tr>
+<tr><td>created_at</td><td>DateTime</td><td>使用时间</td></tr>
+</tbody>
+</table>
+<div class="fn">v0.4 不记录 LLM 输出元数据和失败记录，不实现使用反馈评分。</div>
+</div>
+
+<div class="card">
+<h3>DD-05：执行能力模型定义（capability_level，版本级属性）</h3>
+<table>
+<thead><tr><th>链路段</th><th>当前状态</th><th>v0.4 需补</th></tr></thead>
+<tbody>
+<tr><td>Schema 写入口</td><td>不存在</td><td>补 RoleCreate + RoleUpdate</td></tr>
+<tr><td>Schema 读入口</td><td>不存在</td><td>补 RoleDetail</td></tr>
+<tr><td>对外版本响应</td><td>不包含此字段</td><td><strong>v0.4 不纳入 RoleVersionPublicResponse</strong></td></tr>
+<tr><td>EAV 持久化</td><td>不包含</td><td>LAYER_MAP 补 "capability_level": Layer.L4</td></tr>
+<tr><td>版本快照</td><td>不包含</td><td>进入版本快照（版本级属性）</td></tr>
+<tr><td>前端类型</td><td>不存在</td><td>补 api.ts RoleDetail interface</td></tr>
+<tr><td>UI 写入口</td><td>不存在</td><td>补创建/编辑页下拉选择</td></tr>
+<tr><td>UI 读入口</td><td>不存在</td><td>补详情页展示</td></tr>
+</tbody>
+</table>
+<div class="fn">capability_level 是角色产品内部治理标注，不纳入对外版本响应。如果后续消费方需要此信息，需先通过公共契约裁决。</div>
+<h3 style="margin-top:12px;">枚举与默认值</h3>
+<table>
+<thead><tr><th>枚举值</th><th>含义</th><th>v0.4 行为</th></tr></thead>
+<tbody>
+<tr><td>A1</td><td>问答建议：基于知识回答、分析、总结、提出建议</td><td>默认值，未填写时默认 A1</td></tr>
+<tr><td>A2</td><td>生成产物：生成报告、方案、会议纪要等</td><td>可填写，但 v0.4 只定义模型不实现</td></tr>
+<tr><td>A3</td><td>执行动作：调用工具或系统完成任务</td><td>可填写，但 UI 标注"v0.4 不实现 A3 执行机制"</td></tr>
+</tbody>
+</table>
+</div>
+
+<!-- Section 6: 不变的部分 -->
+<h2>6. 不变的部分</h2>
+
+<div class="card success">
+<ul class="bullet">
+<li>4 状态机 (draft/test/published/archived) 保持不变</li>
+<li>KnowledgeRef + ValidatedKnowledgeVersion 保持不变</li>
+<li>TestRunRecord 保持不变</li>
+<li>RoleVersion 不可覆写机制保持不变</li>
+<li>消费侧 API (GET /role-assets, GET /role-versions/{id}) 不改变</li>
+</ul>
+</div>
+
+<!-- Section 7: UI 路径变化 -->
+<h2>7. UI 路径变化</h2>
+
+<div class="card">
+<table>
+<thead><tr><th>路径</th><th>变化类型</th><th>说明</th></tr></thead>
+<tbody>
+<tr><td>/roles/:id/use</td><td><strong>新增</strong></td><td>使用台页面，仅 published 角色可进入</td></tr>
+<tr><td>/roles/:id/versions</td><td><strong>新增</strong></td><td>版本详情列表页</td></tr>
+<tr><td>/roles/:id</td><td>变更</td><td>补资产治理属性展示、边界声明展示、中文枚举映射</td></tr>
+<tr><td>/roles/:id/edit</td><td>变更</td><td>补资产治理属性字段、边界声明字段、capability_level</td></tr>
+<tr><td>/</td><td>变更</td><td>补分类筛选、所有者筛选、中文枚举</td></tr>
+</tbody>
+</table>
+</div>
+
+<!-- Section 8: 追溯矩阵 -->
+<h2>8. 追溯矩阵：场景 → 设计 → 实现 → 测试 → 证据 → 发布</h2>
+
+<div class="card">
+<table>
+<thead><tr><th>场景 ID</th><th>设计项</th><th>主要实现</th><th>用例链</th><th>结果证据</th></tr></thead>
+<tbody>
+<tr><td>US-06</td><td>DD-01</td><td>角色资产治理属性</td><td>A35-A44, F13-F18, H06-H07</td><td>待实现后补充</td></tr>
+<tr><td>US-07</td><td>DD-02</td><td>边界声明补齐与强化</td><td>A45-A48, F19-F22, H08-H09</td><td>待实现后补充</td></tr>
+<tr><td>US-08</td><td>DD-03</td><td>正式使用台 + usage_records</td><td>A49-A53, F23-F26, H10</td><td>待实现后补充</td></tr>
+<tr><td>US-09</td><td>DD-04</td><td>消费侧 API 设计说明文档</td><td>D01-D02 文档验收</td><td>待产出后补充</td></tr>
+<tr><td>US-10</td><td>DD-05</td><td>capability_level A1/A2/A3</td><td>A54-A57, F27-F28</td><td>待实现后补充</td></tr>
+<tr><td>US-12</td><td>DD-07</td><td>历史版本详情入口</td><td>F30-F31</td><td>待实现后补充</td></tr>
+<tr><td>US-13</td><td>DD-08</td><td>详情页枚举中文映射</td><td>F32-F34</td><td>待实现后补充</td></tr>
+</tbody>
+</table>
+<div class="fn">新增高风险场景必须先补追溯关系再开始实现；修复 P1 问题必须补回归用例；没有实现和证据映射的能力不得对外表述为已完成。</div>
+</div>
+
+<!-- Section 9: 风险与停止条件 -->
+<h2>9. 风险边界与停止条件</h2>
+
+<div class="card warning">
+<h3>风险边界（5 项）</h3>
+<ul class="bullet">
+<li><strong>使用台新增 API 路径</strong> — 如果 /role-assets/{id}/usage 需要新增读写接口，必须先回写 dossier 再实现</li>
+<li><strong>资产治理属性</strong> — 如果上位治理要求纳入公共对象，必须先上提裁决</li>
+<li><strong>消费侧设计</strong> — 调用拓扑只提建议，不裁决</li>
+<li><strong>A3 执行</strong> — 如果涉及工具权限或跨系统调用，必须先上提裁决</li>
+<li><strong>不得把 mock/stub/fixture 描述为真实集成证据</strong></li>
+</ul>
+</div>
+
+<div class="card danger">
+<h3>停止条件（5 项）</h3>
+<ul class="bullet">
+<li>1. 实现偏离 design-delta，必须先回写 dossier</li>
+<li>2. 使用台需要新增读写接口或改变已有 API 路径，必须先回写 dossier</li>
+<li>3. 消费侧设计触发公共契约裁决要求，必须停止相关实现并上提</li>
+<li>4. 执行能力定义涉及工具权限或跨系统调用设计，必须先上提裁决</li>
+<li>5. 不得把 v0.4 任何 mock/stub/fixture 描述为真实集成证据</li>
+</ul>
+</div>
+
+<!-- Section 10: 待裁决项 -->
+<h2>10. 待裁决项</h2>
+
+<div class="card">
+<table>
+<thead><tr><th>裁决项</th><th>说明</th><th>建议</th></tr></thead>
+<tbody>
+<tr><td>"角色资产"是否纳入公共对象</td><td>如果上位治理要求角色资产成为跨项目公共对象，v0.4 需调整字段设计</td><td>先作为角色产品内部概念，后续视裁决扩展</td></tr>
+<tr><td>消费侧调用拓扑</td><td>REST API 直连 / MCP / 本地镜像</td><td>先按 REST API 设计，后续视裁决调整</td></tr>
+<tr><td>使用记录是否需要审计日志</td><td>如果合规要求使用行为可追溯</td><td>先在 usage_records 中记录使用者、时间和查询，后续视合规要求扩展</td></tr>
+<tr><td>A2 生成产物是否在后续版本实现</td><td>产物确认流程和格式约束模型</td><td>后续版本单独立项评估</td></tr>
+<tr><td>AI 辅助填充是否在后续版本纳入</td><td>降低角色创建门槛</td><td>后续版本作为 P2 配套能力评估</td></tr>
+</tbody>
+</table>
+</div>
+
+<!-- Section 11: 复审结论 -->
+<h2>11. AI 规划复审结论</h2>
+
+<div class="card success">
+<h3>两轮复审完成，所有阻塞项已收口</h3>
+<p>第一轮复审（5 个问题 P0-1~P0-3, P1-1~P1-3）和第二轮复审（5 个问题 P0-4~P0-5, P1-4~P1-6）均已处理并通过。</p>
+<p>最终结论：未发现新的阻塞性问题。非阻塞建议保留 1 条：为 capability_level 增补"不进入 RoleVersionPublicResponse"的显式测试（已落实为 A57 用例）。</p>
+</div>
+
+<div class="card">
+<h3>质量门禁当前状态</h3>
+<table>
+<thead><tr><th>门禁</th><th>状态</th></tr></thead>
+<tbody>
+<tr><td>iteration-guard.py</td><td>PASS</td></tr>
+<tr><td>markdownlint</td><td>0 errors</td></tr>
+<tr><td>5 文档编号交叉验证</td><td>一致</td></tr>
+</tbody>
+</table>
+</div>
+
+<!-- Section 12: 终审决策 -->
+<div class="decision-section">
+<h2>终审决策</h2>
+<p>AI 工作方和 AI 审核方已完成共识，以下 dossier 产出供终审方决策：</p>
+<ul class="bullet" style="margin-bottom:16px;">
+<li>研究结论（research-conclusion.md）</li>
+<li>范围说明（scope.md）</li>
+<li>设计增量（design-delta.md）</li>
+<li>追溯矩阵（traceability.md）</li>
+<li>测试计划（delivery/test-plan-v0.4.md）</li>
+<li>测试用例（delivery/test-cases-v0.4.md）</li>
+</ul>
+
+<div class="decision-options">
+<div class="decision-opt approve">
+<h4>批准进入实现</h4>
+<p>终审通过，v0.4.0 进入实现阶段，Formal Status 升级。</p>
+</div>
+<div class="decision-opt modify">
+<h4>修改范围后批准</h4>
+<p>对 Scope In/Out 或设计增量提出调整，处理后重新终审。</p>
+</div>
+<div class="decision-opt reject">
+<h4>驳回</h4>
+<p>终审不通过，需要重新研究或调整方向。</p>
+</div>
+</div>
+</div>
+
+<footer style="margin-top:40px; padding-top:16px; border-top:1px solid var(--border); font-size:12px; color:var(--gray); text-align:center;">
+v0.4.0 Dossier 终审汇报 | 产出文件：research-conclusion.md, scope.md, design-delta.md, traceability.md, test-plan-v0.4.md, test-cases-v0.4.md
+</footer>
+
+</div>
+</body>
+</html>

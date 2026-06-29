@@ -23,21 +23,24 @@ class Settings:
             f"?charset=utf8mb4"
         )
 
-    # 知识平台（Open WebUI）
-    KNOWLEDGE_API_BASE: str = os.getenv("KNOWLEDGE_API_BASE", "http://localhost:3000")
-    KNOWLEDGE_HEALTH_URL: str = os.getenv("KNOWLEDGE_HEALTH_URL", "http://localhost:3099/api/health")
-    KNOWLEDGE_API_TOKEN: str = os.getenv("KNOWLEDGE_API_TOKEN", "")
-    KNOWLEDGE_AUTH_EMAIL: str = os.getenv("KNOWLEDGE_AUTH_EMAIL", "")
-    KNOWLEDGE_AUTH_PASSWORD: str = os.getenv("KNOWLEDGE_AUTH_PASSWORD", "")
-    KNOWLEDGE_DEFAULT_KB_ID: str = os.getenv(
-        "KNOWLEDGE_DEFAULT_KB_ID",
-        "41cee65b-7f9c-4820-ba0d-bb865e0b1e41",
-    )
+    # 知识平台（Knowledge Workbench 公共契约接口）
+    KNOWLEDGE_API_BASE: str = os.getenv("KNOWLEDGE_API_BASE", "http://localhost:3099")
+    KNOWLEDGE_DEFAULT_PACKAGE_ID: str = os.getenv("KNOWLEDGE_DEFAULT_PACKAGE_ID", "eve")
 
     # LLM
     LLM_PROVIDER: str = os.getenv("LLM_PROVIDER", "openai")
     LLM_API_KEY: str = os.getenv("LLM_API_KEY", "")
     LLM_BASE_URL: str = os.getenv("LLM_BASE_URL", "")
+
+    # AI 推荐链路模型配置
+    AI_RECOMMEND_MODEL: str = os.getenv("AI_RECOMMEND_MODEL", "deepseek-v4-pro")
+    AI_RECOMMEND_TEMPERATURE: float = float(os.getenv("AI_RECOMMEND_TEMPERATURE", "0.3"))
+    AI_RECOMMEND_MAX_TOKENS: int = int(os.getenv("AI_RECOMMEND_MAX_TOKENS", "4096"))
+
+    # AI 创建草案链路模型配置
+    AI_CREATE_MODEL: str = os.getenv("AI_CREATE_MODEL", "deepseek-v4-pro")
+    AI_CREATE_TEMPERATURE: float = float(os.getenv("AI_CREATE_TEMPERATURE", "0.7"))
+    AI_CREATE_MAX_TOKENS: int = int(os.getenv("AI_CREATE_MAX_TOKENS", "4096"))
 
     # 内部商业试用基础账号
     AUTH_USERNAME: str = os.getenv("AUTH_USERNAME", "admin")

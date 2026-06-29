@@ -1,4 +1,4 @@
-import { BookOpen, LogOut, Plus, ShieldCheck, Users } from 'lucide-react';
+import { BarChart3, Database, LogOut, ShieldCheck, ShoppingBag, Users } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import type { User } from '../api';
 
@@ -9,14 +9,16 @@ export function Layout({ children, user, onLogout }: { children: React.ReactNode
         <div className="side-brand">
           <div className="brand-mark small">VA</div>
           <div>
-            <strong>角色产品</strong>
-            <span>Virtual Actor</span>
+            <strong>角色资产平台</strong>
+            <span>Role Asset Platform</span>
           </div>
         </div>
         <nav>
+          <NavLink to="/marketplace" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}><ShoppingBag size={18} />资产市场</NavLink>
           <NavLink to="/" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}><Users size={18} />角色资产</NavLink>
-          <NavLink to="/create" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}><Plus size={18} />新建角色</NavLink>
-          <div className="nav-note"><BookOpen size={16} />知识平台真实集成</div>
+          <NavLink to="/dashboard" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}><BarChart3 size={18} />运营看板</NavLink>
+          <NavLink to="/data-assets" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}><Database size={18} />数据资产管理</NavLink>
+          <div className="nav-note">v0.5 冻结骨架：L1-L4 / 使用前说明与调用预览 / 治理发布 / 外供复用</div>
         </nav>
         <div className="side-user">
           <ShieldCheck size={18} />

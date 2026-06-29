@@ -256,17 +256,17 @@
     const list = document.getElementById('va-kb-list');
     if (!list) return;
     let items = [];
-    const TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZkYzcyODEzLWE2MTktNGIxOC1hNjQ3LTkwNGFkMzg4NDQzOSIsImV4cCI6MTc4MTQ5MjUyOSwianRpIjoiNmE0YjVhZDItMDRhMi00MTc2LTk5OGItYmE0NzA2YWJhMTYyIiwiaWF0IjoxNzc5MDczMzI5fQ.Bl3UutEJJlsXaG_GazhrD5iwCE2PQ6dmN_G0ItTQWJw';
+    const KB_API = 'http://localhost:3099/api/public';
     try {
-      // 先获取知识库列表
-      const r1 = await fetch('http://localhost:3000/api/v1/knowledge/', { headers: { Authorization: 'Bearer ' + TOKEN } });
+      const r1 = await fetch(KB_API + '/packages');
       if (r1.ok) {
         const kbs = await r1.json();
-        for (const kb of (kbs.items || [])) {
-          const r2 = await fetch(`http://localhost:3000/api/v1/knowledge/${kb.id}/files`, { headers: { Authorization: 'Bearer ' + TOKEN } });
+        for (const kb of kbs) {
+          const pid = kb.package_id || kb.id;
+          const r2 = await fetch(`${KB_API}/packages/${pid}/manifest`);
           if (r2.ok) {
-            const files = await r2.json();
-            (files.items || []).forEach(f => items.push({ ...f, kb_name: kb.name, kb_id: kb.id }));
+            const manifest = await r2.json();
+            (manifest.documents || []).forEach(f => items.push({ ...f, kb_name: kb.name || pid, kb_id: pid }));
           }
         }
       }
@@ -279,7 +279,7 @@
     const list = document.getElementById('va-kb-list');
     if (!list) return;
     if (items.length === 0) {
-      list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-light);">📭 知识库暂无可浏览的文档<br><span style="font-size:12px;">知识库已连接（4个库），请在 Open WebUI 中导入文档</span></div>';
+      list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-light);">📭 知识库暂无可浏览的文档<br><span style="font-size:12px;">请在 Knowledge Workbench 中导入文档</span></div>';
       return;
     }
     const typeColors = { note: '#3B82F6', reference: '#22C55E', decision: '#F59E0B', thesis: '#8B5CF6', summary: '#EC4899' };

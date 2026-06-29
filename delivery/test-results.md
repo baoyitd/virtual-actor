@@ -1,5 +1,86 @@
 # 测试结果
 
+## v0.5.1 Knowledge Workbench 公共契约切换验收
+
+版本: v0.5.1 | 测试时间: 2026-06-23 | 执行主体: Codex
+
+### 自动化结果
+
+| 项目 | 命令 / 入口 | 状态 | 结果 |
+|------|-------------|------|------|
+| 后端 API 自动化 | `./venv/bin/python -m pytest tests -q` | PASS | `44 passed, 0 warnings` |
+| 后端健康检查 | `GET http://localhost:18120/health` | PASS | `{"status":"ok","service":"virtual-actor","version":"0.5.1"}` |
+| 知识平台健康检查 | `GET http://localhost:3099/api/public/packages` | PASS | HTTP 200，返回 7 个知识包 |
+| 知识平台版本快照 | `GET http://localhost:3099/api/public/packages/eve/status` | PASS | `version_id=fafecb7e4b17519c06e7dd2e65ee8865619bf3ff`，51 文档 |
+| 知识平台健康代理 | `GET http://localhost:18120/health/knowledge-platform` | PASS | `{"knowledge_platform":"reachable"}` |
+| 知识库列表代理 | `GET http://localhost:18120/knowledge/bases` | PASS | 7 个知识包 |
+| 知识目录代理 | `GET http://localhost:18120/knowledge/catalog?kb_id=eve` | PASS | 51 文档，koid 格式 `10-Areas/eve/master/*.md` |
+| retrieve 全量 | `POST /api/public/retrieve` 无 scope | PASS | 5 chunks，koid 字段完整 |
+| retrieve scoped | `POST /api/public/retrieve` + `knowledge_object_ids` | PASS | 1 chunk，无范围泄漏 |
+| retrieve 空 scope | `POST /api/public/retrieve` + `knowledge_object_ids=[]` | PASS | 0 chunks |
+| retrieve 不存在 koid | `POST /api/public/retrieve` + 不存在 koid | PASS | 0 chunks |
+| package_id 不收窄 | retrieve 传 package_id 被忽略 | PASS | 5 chunks（与全量一致） |
+| route 端点 | `POST /api/public/route` | PASS | Q1 → P1 |
+| 端到端 consume | `POST /role-assets/{id}/consume` 快消角色 | PASS | status=success，知识检索+LLM 全链路通过 |
+
+### 补丁修复验证（M01/M02/M05 收口）
+
+测试时间: 2026-06-26 | 执行主体: CodeBuddy + GLM-5.2
+
+| 项目 | 命令 / 入口 | 状态 | 结果 |
+|------|-------------|------|------|
+| 后端 API 自动化 | `./venv/bin/python -m pytest tests -q` | PASS | `44 passed, 0 warnings`（M05 修复后 warnings 从 10 降为 0） |
+| 前端 TypeScript 构建 | `cd frontend && npm run build` | PASS | tsc + vite build 成功，无类型错误 |
+| M01 枚举值映射 | 代码审查 | PASS | `RoleBriefingCard` latest_status 映射中文；`RoleVersions` briefing.status 映射中文；后端 briefing_service latest_status 映射中文；AI 草稿 decision_style 默认值改为中文；前端新增 decisionStyleText/collaborationModeText 映射表 |
+| M02 版本详情入口 | 代码审查 | PASS | RoleVersions 版本详情面板从裸 JSON 升级为结构化展示（9 个字段卡片），用户可直接在 UI 查看完整版本详情 |
+| M05 ConfigDict 迁移 | pytest warnings 检查 | PASS | 8 处 class Config 迁移为 model_config = ConfigDict，涉及 6 个 schema 文件 |
+
+### 端点对齐确认
+
+| 端点 | 路径 | 状态 |
+|------|------|------|
+| 知识包列表 | `GET /api/public/packages` | ✅ |
+| 结构化元数据 | `GET /api/public/packages/{package_id}/manifest` | ✅ |
+| 版本标识+健康检查 | `GET /api/public/packages/{package_id}/status` | ✅ |
+| 问题路由 | `POST /api/public/route` | ✅ |
+| 检索 | `POST /api/public/retrieve` | ✅ |
+
+### 配置对齐确认
+
+| 配置项 | `.env` | `.env.example` | `config.py` | `docker-compose.yml` |
+|-------|--------|----------------|-------------|---------------------|
+| KNOWLEDGE_API_BASE | `localhost:3099` | `localhost:3099` | `localhost:3099` | `host.docker.internal:3099` |
+| KNOWLEDGE_DEFAULT_PACKAGE_ID | `eve` | `eve` | `eve` | `eve` |
+| AUTH 字段 | 无 | 无 | 无 | 无 |
+
+### 混合检索联调验证（2026-06-29）
+
+测试时间: 2026-06-29 | 执行主体: CodeBuddy + GLM-5.2
+
+知识平台 06-29 回同步确认 Open WebUI 适配器已实现，retrieve 为混合检索（open_webui 向量检索为主 + deterministic 确定性评分补充 + fallback）。角色产品据此重新联调验证检索质量。
+
+| 测试项 | 验证方式 | 结果 |
+|--------|---------|------|
+| 混合检索引擎确认 | `POST /api/public/retrieve` 全量检索 | PASS — 5 hits 中 3 条 open_webui + 2 条 deterministic，`execution_engine` 字段标注来源引擎 |
+| 语义匹配能力 | 问题"促销策略如何影响动销"全量检索 | PASS — open_webui 命中快消品行业知识文档（42-渠道结构与分销、44-消费者行为与FMOT、43-费用管理与ROI），语义匹配有效 |
+| scoped 范围过滤 | 5 篇绑定文档做 scope 检索 | PASS — 4 hits 全部在范围内，0 条泄漏；混合引擎（2 deterministic + 2 open_webui） |
+| 端到端 consume | test-consume 快消行业业务分析专家角色 | PASS — status=success，boundary=within_boundary，5 sources 全 P1，回答专业有知识引用 |
+| 中文包名 manifest | 7 个包 manifest/status 全部 200 | PASS — 含 `快消品行业知识`、`复星旅文知识库` 两个中文包 |
+
+联调结论：混合检索与 06-17 反馈时的纯确定性评分器有质变——open_webui 向量检索能做语义匹配，scoped 范围过滤无泄漏，端到端 consume 质量满足"可靠结论"目标。v0.5.1 dossier 中"检索质量回退"已知偏差已消除。
+
+备注：`execution_engine` 字段为知识平台诊断字段，当前角色产品 `knowledge_platform.py` retrieve 方法未映射此字段到 sources，不影响消费功能。如需诊断用途，后续可在 chunk 映射中补充。
+
+### 当前结论
+
+Knowledge Workbench 公共契约切换完成，运行态代码、配置、测试全部对齐，端到端联调通过，无 Blocker。
+
+---
+
+## v0.3.0 商业试用验收（历史记录）
+
+> 以下为 v0.3.0 阶段基于 Open WebUI 直连接口的验收记录，**已归档为历史参考**。当前生产环境已切换至 Knowledge Workbench 公共契约（`/api/public/*`），以下旧端点引用（`/api/health`、`/api/sync-all`、`owui.status`）不再适用。
+
 版本: v0.3.0-commercial-trial | 测试时间: 2026-05-22 15:03 CST | 执行主体: Codex
 
 ## 自动化结果

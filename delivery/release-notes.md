@@ -1,30 +1,33 @@
 # 交付说明
 
-版本: v0.3.0-commercial-trial | 日期: 2026-05-22 | 当前状态: Accepted
+版本: v0.5.1 | 日期: 2026-06-23 | 当前状态: Accepted
 
 ## 本版本包含
 
+- Knowledge Workbench 公共契约切换：从 Open WebUI 直连切换至 `/api/public/*` 公共端点，alpha 阶段无 auth。
+- retrieve 范围过滤落地：`knowledge_object_ids` 传入时仅在这些文档内检索；不传时全量检索（兼容模式）。
+- route/retrieve 为独立运行态端点，不挂在 package 路径下；`package_id` 不参与 retrieve/route 的运行态范围定义。
+- `knowledge_object_id` 格式统一为 Vault 相对路径（含 `10-Areas/` 等根前缀，含 `.md` 后缀），与知识平台存储格式一致，无需转换。
+- 端点路径统一为 `/api/public/*` 前缀；默认端口 `3099`；默认包 `eve`。
+- 移除 Open WebUI 遗留配置（`KNOWLEDGE_API_TOKEN`、`KNOWLEDGE_AUTH_EMAIL`、`KNOWLEDGE_AUTH_PASSWORD`）。
 - React 正式用户入口：登录、角色列表、详情、创建、编辑、知识绑定、测试台、测试历史、人工评分、发布、版本记录、归档。
-- FastAPI 根路径托管 `frontend/dist`，用户只访问一个服务地址；`prototype/` 不再作为验收对象。
-- 中国企业商务后台风格 UI：稳重配色、中文业务文案、字段说明、模板辅助、状态标签、筛选/搜索、加载/错误/空状态。
-- 基础登录鉴权：`POST /auth/login`、`POST /auth/logout`、`GET /auth/me`，业务 API 默认需要 Bearer token。
-- 角色版本规则：已发布版本不可覆写，编辑后生成新草稿版本；测试记录冻结当时 `role_version_id`。
-- 知识平台集成：知识库列表、知识目录 API、绑定持久化、绑定版本补齐、测试时真实检索入口、来源与分数展示、知识平台不可达时阻断。
-- 知识平台上线验收语义已收口：文件绑定不直接限制检索范围，检索仍按 knowledge collection 级执行；正式真源字段统一为顶层 `knowledge_object_id`。
-- 发布规则：发布前必须有知识绑定和当前版本测试记录，发布时写入最小 `validated_knowledge_versions`。
-- 写接口一致性修复：创建、绑定、测试、评分、发布、状态迁移等写操作在返回前显式提交，避免用户刷新后读到旧状态。
-- 启动迁移修复：应用启动阶段显式执行 Alembic 迁移，失败直接阻断启动；迁移连接串读取运行时数据库配置，并增加短重试以适配 Compose 冷启动。
-- Docker Compose 单机交付：应用镜像、React 构建、MySQL、环境变量模板、健康检查。
+- FastAPI 根路径托管 `frontend/dist`，用户只访问一个服务地址。
+- 角色版本规则：已发布版本不可覆写，编辑后生成新草稿版本。
+- Docker Compose 单机交付。
+
+## 补丁修复（已知问题收口）
+
+- M01 收口：详情页与版本页枚举值中文映射。`RoleBriefingCard` 的 `latest_status` 使用 `consumeStatusText` 映射；`RoleVersions` 的 `briefing.status` 使用 `briefingStatusText` 映射；后端 `briefing_service` 的 `latest_status` 同步映射中文；AI 草稿 `decision_style` 默认值由 `balanced` 改为中文商务表达；前端新增 `decisionStyleText`/`collaborationModeText` 映射表。
+- M02 收口：版本记录页详情面板从裸 JSON 升级为结构化展示，用户可直接在 UI 查看历史版本的完整定义、知识引用、数据资产和验证记录，不再需要调 API。
+- M05 收口：全部 8 处 Pydantic V2 `class Config` 迁移为 `model_config = ConfigDict(from_attributes=True)`，测试日志不再有弃用警告。
 
 ## 当前已验证结果
 
-- `./venv/bin/python -m pytest tests -q` 通过，当前为 `38 passed, 8 warnings`。
-- `python3 -m compileall app` 通过。
-- `cd frontend && npm run build` 通过。
-- React 正式入口已完成页面级程序化烟测：登录、看板筛选/搜索、模板建角、知识搜索/选择、保存、测试、评分、发布、发布后编辑均可走通。
-- 用户已完成 H01-H05 人工手动冒烟，当前 5 条高风险核心路径均通过。
-- 知识平台当前依赖说明已更新为 `/Users/baoyi/Documents/code_buddy/knowledge-workbench/docs/handoff/role-product-release-dependency-note.md`，其当前交付范围 Formal Status 为 `Accepted`；最新运行态复核中 `/api/health` 正常，`health-check.sh` 为 `15/15` 通过，版本快照为 `ba280c293c5775fae52cf39cd5fd69368bae022e`。
-- 本地 `POST /api/sync-all` 已执行成功，4 步均 `ok`；执行后角色产品 consumer 读取链和 UI 测试链保持可用。
+- `./venv/bin/python -m pytest tests -q` 通过，当前为 `44 passed, 0 warnings`。
+- Knowledge Workbench 公共契约端到端联调通过：packages/manifest/status/route/retrieve 全部对齐。
+- retrieve scope 过滤验证通过：scoped 检索无范围泄漏，空/不存在 koid 返空，package_id 被忽略。
+- 快消行业业务分析专家角色 consume 全链路通过：知识检索 + LLM 回答 status=success。
+- 知识平台健康检查改为 `GET /api/public/packages`（HTTP 200 即可达），version_id `fafecb7e4b17519c06e7dd2e65ee8865619bf3ff`。
 
 ## 启动方式
 
@@ -46,23 +49,21 @@ docker compose up --build
 
 默认访问地址: `http://localhost:8000`
 
-当前验收栈入口: `http://127.0.0.1:18000`
-
 ## 当前边界
 
 1. React 是唯一正式用户入口，`prototype/` 仅作迁移参考。
-2. 知识平台当前可以按 Accepted handoff 继续作为本轮交付范围内的真实上游，但不能外推为长期冻结公共契约版本。
-3. 本地 `sync-all` 这次运行的收件箱为空，因此本轮本地证据只覆盖“`sync-all` 可执行且执行后 consumer 链继续可用”；“新增知识被 consumer 检索命中”的强证据沿用知识平台 handoff。
-4. 决策产品集成暂缓，待角色产品 + 知识平台验收完成后另开准备计划。
+2. Knowledge Workbench 公共契约为 alpha 阶段口径，retrieve "不传即全量"为兼容模式，不构成角色产品"专属知识边界已成立"的依据。
+3. 决策产品集成暂缓，待角色产品 + 知识平台验收完成后另开准备计划。
 
 ## 当前限制
 
-- React 详情页仍有少量中文体验问题：`decision_style`、`collaboration_mode` 会显示内部枚举值。
-- 已发布角色在进入新草稿后，React UI 仅保留历史版本摘要时间线，尚无独立历史版本详情入口。
 - 鉴权为内部商业试用基础能力，不覆盖企业级 RBAC、多租户、审计报表。
-- 当前 Accepted 仅覆盖本轮已验收范围，不外推为长期冻结公共契约版本。
+- `evidence_tier` 标注为后续迭代项，角色平台核心结论字段尚未增加知识支撑层级标注。
+- retrieve 混合检索（open_webui 向量检索为主 + deterministic 确定性评分补充 + fallback），知识平台 Open WebUI 适配器已实现并运行，2026-06-29 联调验证检索质量通过。
+- 中文 `package_id` 的 manifest/status 端点已修复（知识平台 06-24 修复），7 个包全部 200。
 
 ## 下一步
 
-1. 如需继续收口体验问题，可补“详情页中文映射”和“历史版本详情入口”。
-2. 若后续扩大到新能力、新边界或新的依赖冻结口径，需要按新范围重新补齐证据并走治理流程。
+1. 最终用户验证（用户执行）。
+2. 后续迭代补 evidence_tier 标注。
+3. retrieve 执行机制共识确认（混合检索方案，待与知识平台走共识流程）。

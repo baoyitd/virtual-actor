@@ -1,6 +1,6 @@
 """测试记录 Pydantic Schema"""
 from datetime import datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class TestRunCreate(BaseModel):
@@ -17,8 +17,7 @@ class TestRunOut(BaseModel):
     human_rating: int | None = None
     tested_at: datetime | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class TestRunRating(BaseModel):

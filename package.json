@@ -6,7 +6,9 @@
   "scripts": {
     "lint:md": "markdownlint-cli2",
     "quality:docs": "npm run lint:md && vale delivery docs portfolio-sync.md",
-    "quality:iteration": "python3 scripts/iteration-guard.py --repo-root . --mode release"
+    "quality:iteration": "python3 scripts/iteration-guard.py --repo-root . --mode release",
+    "smoke:v05:runtime": "./venv/bin/python scripts/v05_smoke_runtime.py",
+    "smoke:v05:browser": "npx -y -p playwright node scripts/v05_browser_smoke.js"
   },
   "devDependencies": {
     "markdownlint-cli2": "^0.22.1"

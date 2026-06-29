@@ -1,0 +1,183 @@
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]: VA
+      - generic [ref=e7]:
+        - strong [ref=e8]: 角色资产平台
+        - text: Role Asset Platform
+    - navigation [ref=e9]:
+      - link "资产市场" [ref=e10] [cursor=pointer]:
+        - /url: "#/marketplace"
+        - img [ref=e11]
+        - text: 资产市场
+      - link "角色资产" [ref=e14] [cursor=pointer]:
+        - /url: "#/"
+        - img [ref=e15]
+        - text: 角色资产
+      - link "运营看板" [ref=e20] [cursor=pointer]:
+        - /url: "#/dashboard"
+        - img [ref=e21]
+        - text: 运营看板
+      - link "数据资产管理" [ref=e23] [cursor=pointer]:
+        - /url: "#/data-assets"
+        - img [ref=e24]
+        - text: 数据资产管理
+      - generic [ref=e28]: v0.5 冻结骨架：L1-L4 / 使用前说明与调用预览 / 治理发布 / 外供复用
+    - generic [ref=e29]:
+      - img [ref=e30]
+      - generic [ref=e33]:
+        - strong [ref=e34]: admin
+        - text: 内部商业试用
+      - button "退出登录" [ref=e35] [cursor=pointer]:
+        - img [ref=e36]
+  - main [ref=e39]:
+    - generic [ref=e337]:
+      - generic [ref=e338]:
+        - link "返回角色概览" [ref=e339] [cursor=pointer]:
+          - /url: "#/roles/0231b74c-ea55-49cc-8683-9adfb25a462c"
+          - img [ref=e340]
+          - text: 返回角色概览
+        - link "使用前说明" [ref=e342] [cursor=pointer]:
+          - /url: "#/roles/0231b74c-ea55-49cc-8683-9adfb25a462c/briefing"
+        - button "刷新" [ref=e343] [cursor=pointer]:
+          - img [ref=e344]
+          - text: 刷新
+      - generic [ref=e350]:
+        - paragraph [ref=e351]: Export & Call
+        - heading "外供与调用" [level=1] [ref=e352]
+        - paragraph [ref=e353]: 角色已发布后，这里负责生成外供包供外部系统使用，并验证调用是否正常。
+      - generic [ref=e354]:
+        - complementary [ref=e355]:
+          - generic [ref=e356]:
+            - paragraph [ref=e357]: Role Flow
+            - strong [ref=e358]: v0.5 主链路
+            - generic [ref=e359]: 先定义与说明，保存说明后进入测试；发布后进入外供与调用。
+          - generic [ref=e360]:
+            - link "01 角色定义工作台 L1-L4 定义骨架" [ref=e361] [cursor=pointer]:
+              - /url: "#/roles/0231b74c-ea55-49cc-8683-9adfb25a462c/edit"
+              - img [ref=e362]
+              - generic [ref=e366]:
+                - strong [ref=e367]: 01 角色定义工作台
+                - text: L1-L4 定义骨架
+            - link "02 使用前说明 说明卡与调用预览" [ref=e368] [cursor=pointer]:
+              - /url: "#/roles/0231b74c-ea55-49cc-8683-9adfb25a462c/briefing"
+              - img [ref=e369]
+              - generic [ref=e372]:
+                - strong [ref=e373]: 02 使用前说明
+                - text: 说明卡与调用预览
+            - link "03 试用与测试 测试当前版本" [ref=e374] [cursor=pointer]:
+              - /url: "#/roles/0231b74c-ea55-49cc-8683-9adfb25a462c/test"
+              - img [ref=e375]
+              - generic [ref=e378]:
+                - strong [ref=e379]: 03 试用与测试
+                - text: 测试当前版本
+            - link "04 治理与发布 治理项 + 发布 / 归档" [ref=e380] [cursor=pointer]:
+              - /url: "#/roles/0231b74c-ea55-49cc-8683-9adfb25a462c/governance"
+              - img [ref=e381]
+              - generic [ref=e384]:
+                - strong [ref=e385]: 04 治理与发布
+                - text: 治理项 + 发布 / 归档
+            - link "05 外供与调用 外供包 + 验证调用 + 记录" [ref=e386] [cursor=pointer]:
+              - /url: "#/roles/0231b74c-ea55-49cc-8683-9adfb25a462c/exports"
+              - img [ref=e387]
+              - generic [ref=e389]:
+                - strong [ref=e390]: 05 外供与调用
+                - text: 外供包 + 验证调用 + 记录
+        - generic [ref=e391]:
+          - generic [ref=e392]:
+            - strong [ref=e393]: 合规审核角色_v2
+            - text: ·
+            - generic [ref=e394]: 状态 已发布
+            - text: ·
+            - generic [ref=e395]: 版本 e6d91d27...
+            - text: ·
+            - generic [ref=e396]: 说明卡 待保存
+            - text: ·
+            - generic [ref=e397]: 专业审查（自由输出）
+          - generic [ref=e398]:
+            - generic [ref=e400]:
+              - heading "生成外供包" [level=2] [ref=e401]
+              - paragraph [ref=e402]: 生成后自动下载 zip 文件，导入外部系统使用。同类型包只保留最新一个。
+            - generic [ref=e403]:
+              - button "生成 Tool 包（Dify）" [ref=e404] [cursor=pointer]:
+                - img [ref=e405]
+                - text: 生成 Tool 包（Dify）
+              - button "生成 Skill 包（Codex）" [ref=e408] [cursor=pointer]:
+                - img [ref=e409]
+                - text: 生成 Skill 包（Codex）
+          - generic [ref=e413]:
+            - generic [ref=e415]:
+              - heading "调用方式说明" [level=2] [ref=e416]
+              - paragraph [ref=e417]: 外部系统通过以下方式调用该角色。
+            - generic [ref=e418]:
+              - generic [ref=e419]:
+                - strong [ref=e420]: API 地址
+                - code [ref=e421]: "POST {VIRTUAL_ACTOR_BASE_URL}/role-assets/{role_id}/consume"
+              - generic [ref=e422]:
+                - strong [ref=e423]: 认证
+                - code [ref=e424]: "Authorization: Bearer {VIRTUAL_ACTOR_TOKEN}"
+              - generic [ref=e425]:
+                - strong [ref=e426]: 请求参数
+                - generic [ref=e427]: "{ \"query\": \"业务问题\", \"context\": \"可选业务上下文\", \"caller_type\": \"external_tool 或 external_skill\", \"caller_id\": \"你的调用方标识\", \"role_version_id\": \"e6d91d27-0799-496e-8e02-64ff2f5f44b6\" }"
+              - generic [ref=e428]:
+                - strong [ref=e429]: 使用引导
+                - list [ref=e430]:
+                  - listitem [ref=e431]:
+                    - strong [ref=e432]: Dify
+                    - text: ：生成 Tool 包后，将包内
+                    - code [ref=e433]: dify-openapi.json
+                    - text: 和
+                    - code [ref=e434]: dify-provider-template.json
+                    - text: 导入 Dify，配置
+                    - code [ref=e435]: VIRTUAL_ACTOR_BASE_URL
+                    - text: 和
+                    - code [ref=e436]: VIRTUAL_ACTOR_TOKEN
+                    - text: 即可调用。
+                  - listitem [ref=e437]:
+                    - strong [ref=e438]: Codex
+                    - text: ：生成 Skill 包后，将
+                    - code [ref=e439]: SKILL.md
+                    - text: 和包内文件复制到 Codex 项目，配置环境变量即可调用。
+          - generic [ref=e440]:
+            - generic [ref=e442]:
+              - heading "验证调用" [level=2] [ref=e443]
+              - paragraph [ref=e444]: 选择调用方式，输入问题，验证已发布版本能正常响应。
+            - generic [ref=e445]:
+              - generic [ref=e446]:
+                - generic [ref=e447]: 调用方式
+                - combobox "调用方式" [ref=e448]:
+                  - option "平台内调用（human）"
+                  - option "Dify Tool（external_tool）" [selected]
+                  - option "Codex Skill（external_skill）"
+              - generic [ref=e449]:
+                - generic [ref=e450]: 查询问题
+                - textbox "查询问题" [ref=e451]: 请基于当前角色给出一份结构化业务判断。
+            - generic [ref=e452]:
+              - generic [ref=e453]: 业务上下文（可选）
+              - textbox "业务上下文（可选）" [ref=e454]
+            - button "执行调用" [ref=e456] [cursor=pointer]:
+              - img [ref=e457]
+              - text: 执行调用
+          - generic [ref=e460]:
+            - generic [ref=e462]:
+              - heading "调用记录" [level=2] [ref=e463]
+              - paragraph [ref=e464]: 全部调用记录，按调用方式区分。
+            - generic [ref=e465]:
+              - generic [ref=e466]:
+                - generic [ref=e467]:
+                  - generic [ref=e468]: human
+                  - strong [ref=e469]: 触发边界限制
+                - generic [ref=e470]: 你可以做什么
+                - generic [ref=e471]: e6d91d27... · 专业审查
+              - generic [ref=e472]:
+                - generic [ref=e473]:
+                  - generic [ref=e474]: human
+                  - strong [ref=e475]: 知识不足
+                - generic [ref=e476]: 合规风险主要有哪些
+                - generic [ref=e477]: e6d91d27... · 专业审查
+              - generic [ref=e478]:
+                - generic [ref=e479]:
+                  - generic [ref=e480]: human
+                  - strong [ref=e481]: 知识不足
+                - generic [ref=e482]: 请审核这个投资项目是否符合合规要求
+                - generic [ref=e483]: 57a53e3f... · 专业审查

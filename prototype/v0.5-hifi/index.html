@@ -1,0 +1,1483 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Virtual Actor v0.5 High-Fidelity Prototype</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="noise"></div>
+    <div class="app-shell">
+      <aside class="side-rail">
+        <div class="brand-lockup">
+          <div class="brand-mark">VA</div>
+          <div>
+            <p class="brand-overline">High-Fidelity Prototype</p>
+            <h1>Virtual Actor v0.5</h1>
+          </div>
+        </div>
+
+        <p class="rail-copy">
+          这一版不再把角色定义、消费说明和资产治理揉成一页。当前原型只验证关键交互体感，不代表正式实现。
+        </p>
+
+        <nav class="screen-nav" aria-label="Prototype screens">
+          <p class="nav-group-label">角色主链</p>
+          <button class="screen-chip active" data-screen="workspace">
+            <span class="screen-chip-index">01</span>
+            <span>
+              <strong>角色定义工作台</strong>
+              <small>L1-L4 定义骨架</small>
+            </span>
+          </button>
+          <button class="screen-chip" data-screen="briefing">
+            <span class="screen-chip-index">02</span>
+            <span>
+              <strong>使用前说明与调用预览</strong>
+              <small>说明卡 + 调用预览</small>
+            </span>
+          </button>
+          <button class="screen-chip" data-screen="validation">
+            <span class="screen-chip-index">03</span>
+            <span>
+              <strong>试用与测试</strong>
+              <small>test 角色验证</small>
+            </span>
+          </button>
+          <button class="screen-chip" data-screen="publish">
+            <span class="screen-chip-index">04</span>
+            <span>
+              <strong>治理与发布</strong>
+              <small>治理字段 + 发布门禁</small>
+            </span>
+          </button>
+          <button class="screen-chip" data-screen="usage">
+            <span class="screen-chip-index">05</span>
+            <span>
+              <strong>正式消费</strong>
+              <small>published version + consume</small>
+            </span>
+          </button>
+          <button class="screen-chip" data-screen="package">
+            <span class="screen-chip-index">06</span>
+            <span>
+              <strong>外供与追溯</strong>
+              <small>外供生成 + 回写闭环</small>
+            </span>
+          </button>
+          <p class="nav-group-label">配套管理</p>
+          <button class="screen-chip" data-screen="data-assets">
+            <span class="screen-chip-index">A</span>
+            <span>
+              <strong>数据资产管理</strong>
+              <small>管理员维护可绑定数据源</small>
+            </span>
+          </button>
+        </nav>
+
+        <section class="rail-panel">
+          <div class="rail-panel-head">
+            <span>设计焦点</span>
+            <span class="pill pill-ink">Draft</span>
+          </div>
+          <ul class="focus-list">
+            <li>L1-L4 回到角色定义主骨架</li>
+            <li>使用前说明独立于角色本体</li>
+            <li>试用与测试前移，先验证再治理</li>
+            <li>L3 改为数据能力绑定，不再写能力文案</li>
+            <li>治理字段和发布门禁只留在治理侧</li>
+            <li>正式消费与外供都建立在已发布版本上</li>
+          </ul>
+        </section>
+      </aside>
+
+      <main class="main-stage">
+        <header class="hero-bar">
+          <div>
+            <p class="eyebrow">Design Review Stage</p>
+            <h2 id="screenTitle">角色定义工作台</h2>
+            <p id="screenSubtitle" class="hero-subtitle">
+              先把角色定义、使用前说明和资产治理拆开，再决定页面怎么组织。
+            </p>
+          </div>
+          <div class="hero-actions">
+            <button id="draftButton" class="button button-primary">
+              套用 AI 草案
+            </button>
+            <button id="resetButton" class="button button-ghost">
+              恢复人工草稿
+            </button>
+          </div>
+        </header>
+
+        <section id="screen-workspace" class="screen active">
+          <div class="workspace-layout">
+            <aside class="chapter-rail card-surface">
+              <div class="chapter-head">
+                <p>创建方式</p>
+                <div class="toggle-pills">
+                  <button class="toggle-pill active" data-mode="ai">
+                    AI 起草
+                  </button>
+                  <button class="toggle-pill" data-mode="manual">
+                    手工补齐
+                  </button>
+                </div>
+              </div>
+              <div class="chapter-framework-note">
+                <strong>L1-L4 是角色定义唯一主骨架</strong>
+                <span>使用前说明和资产治理不再混进角色定义主路径。</span>
+              </div>
+              <div class="chapter-stack">
+                <button class="chapter-link active" data-step="identity">
+                  <span>L1</span>
+                  <div>
+                    <strong>身份与判断</strong>
+                    <small>名称、摘要、核心职责、分析视角</small>
+                  </div>
+                </button>
+                <button class="chapter-link" data-step="knowledge">
+                  <span>L2</span>
+                  <div>
+                    <strong>知识依据</strong>
+                    <small>知识绑定与知识边界</small>
+                  </div>
+                </button>
+                <button class="chapter-link" data-step="capability">
+                  <span>L3</span>
+                  <div>
+                    <strong>数据能力（可选）</strong>
+                    <small>选择已授权数据资产并查看摘要</small>
+                  </div>
+                </button>
+                <button class="chapter-link" data-step="output">
+                  <span>L4</span>
+                  <div>
+                    <strong>输出与运行</strong>
+                    <small>先选输出方式，再看模板与高级配置</small>
+                  </div>
+                </button>
+              </div>
+              <div class="chapter-footnote">
+                <p>
+                  适用场景、使用说明、可信依据摘要已从角色定义页移到独立的使用前说明视图。
+                </p>
+              </div>
+            </aside>
+
+            <div class="workspace-main">
+              <section class="starter-card card-surface">
+                <div class="section-title-row">
+                  <div>
+                    <p class="section-kicker">AI Draft Entry</p>
+                    <h3>先用自然语言起草，再回到同一套 L1-L4 工作区确认</h3>
+                  </div>
+                  <span class="section-badge">不落库，只生成结构化草案</span>
+                </div>
+                <div class="starter-grid">
+                  <article class="starter-panel starter-panel-primary">
+                    <label class="field">
+                      <span>角色意图描述</span>
+                      <textarea id="field-intent-description" rows="5">我想创建一个能帮助集团管理层做经营复盘和投资前置判断的角色。它要基于经营分析知识和指标口径，输出结构化建议与风险提示，不替代最终经营决策。</textarea>
+                      <small>AI 起草只负责把自然语言转成结构化草案，不直接保存，不替代人工确认。</small>
+                    </label>
+                    <div class="starter-actions">
+                      <button class="button button-primary" id="openDraftFromStarter">
+                        生成结构化草案预演
+                      </button>
+                      <button class="button button-secondary" id="switchToManualMode">
+                        直接进入手工补齐
+                      </button>
+                    </div>
+                  </article>
+                  <article class="starter-panel">
+                    <p class="card-kicker">阶段式补齐</p>
+                    <h4>不是第一次就把治理项压满</h4>
+                    <div class="journey-line" id="stageJourney"></div>
+                    <div class="journey-guidance" id="stageGuidance">
+                      当前先保证角色本体能成立，再逐步补齐使用前说明和治理要求。
+                    </div>
+                  </article>
+                </div>
+              </section>
+
+              <section class="layer-framework card-surface">
+                <div class="section-title-row">
+                  <div>
+                    <p class="section-kicker">Layer Framework</p>
+                    <h3>角色定义页只看 L1-L4</h3>
+                  </div>
+                  <span class="section-badge">使用前说明 / 治理另页承接</span>
+                </div>
+                <div class="layer-framework-grid">
+                  <article class="layer-framework-card">
+                    <strong>L1 · 身份与判断</strong>
+                    <p>
+                      定义这个角色是谁，以及它默认如何看问题，收口到一个职责簇，而不是一整个岗位。
+                    </p>
+                  </article>
+                  <article class="layer-framework-card">
+                    <strong>L2 · 知识依据</strong>
+                    <p>定义它是否绑定真实知识，以及有知识时边界到哪里；知识绑定是可选增强，不是成立门槛。</p>
+                  </article>
+                  <article class="layer-framework-card">
+                    <strong>L3 · 数据能力（可选）</strong>
+                    <p>定义它是否被授权读取结构化业务数据，以及当前绑定了哪些数据资产。</p>
+                  </article>
+                  <article class="layer-framework-card">
+                    <strong>L4 · 输出方式与运行配置</strong>
+                    <p>先定义自由输出还是结构化输出，再决定模板、业务扩展和高级运行配置。</p>
+                  </article>
+                </div>
+              </section>
+
+              <section class="workspace-step active" data-step-panel="identity">
+                <div class="section-card card-surface">
+                  <div class="section-header">
+                    <div>
+                      <p class="section-kicker">L1 · 身份与判断</p>
+                      <h3>先定义这个角色是谁，以及它默认如何看问题</h3>
+                    </div>
+                    <span class="section-badge">角色本体</span>
+                  </div>
+                  <div class="layer-pill-row">
+                    <span class="layer-pill">L1 · 身份与判断</span>
+                    <span class="layer-pill layer-pill-muted"
+                      >治理字段已移到治理侧</span
+                    >
+                  </div>
+                  <div class="helper-banner">
+                    <strong>角色定义页只处理角色本体</strong>
+                    <span
+                      >适用场景、使用说明、可信依据摘要不在这里维护，它们进入使用前说明视图。</span
+                    >
+                  </div>
+                  <div class="field-grid two-up">
+                    <label class="field">
+                      <span>角色名称</span>
+                      <input id="field-name" type="text" value="经营分析顾问" />
+                      <small>用于被人类和外部 AI 环境识别。</small>
+                    </label>
+                    <label class="field">
+                      <span>一句话摘要</span>
+                      <textarea
+                        id="field-bio"
+                        rows="3"
+                        placeholder="面向【对象/场景】，提供【结果/价值】。"
+                      ></textarea>
+                      <small>用于让人快速理解这个角色做什么，应保持短摘要，不替代核心职责。</small>
+                    </label>
+                  </div>
+                  <div class="field-grid">
+                    <label class="field field-emphasis">
+                      <span>核心职责</span>
+                      <textarea
+                        id="field-duty"
+                        rows="4"
+                        placeholder="围绕【对象/场景】，负责【动作1】、【动作2】，并输出【结果1】与【结果2】。"
+                      ></textarea>
+                      <small>这里定义角色版本的职责锚点，用来收口粒度，不写完整岗位介绍。</small>
+                    </label>
+                  </div>
+                  <div class="field-grid">
+                    <label class="field">
+                      <span>分析视角</span>
+                      <textarea
+                        id="field-point-of-view"
+                        rows="4"
+                        placeholder="优先从【维度1】、【维度2】看问题，重点关注【关键矛盾/指标】。"
+                      ></textarea>
+                      <small>这是新的 `L1` 主路径字段，用来说明这个角色默认从哪些维度看问题。</small>
+                    </label>
+                  </div>
+                  <details class="support-box">
+                    <summary>高级 / 补充项：决策风格、身份背景、表达风格</summary>
+                    <div class="field-grid">
+                      <label class="field">
+                        <span>决策风格</span>
+                        <select id="field-decision-style">
+                          <option>稳健保守</option>
+                          <option selected>均衡审慎</option>
+                          <option>积极进取</option>
+                        </select>
+                        <small>当前平台已有能力，继续决定角色给建议时的保守程度，但不再占主路径。</small>
+                      </label>
+                    </div>
+                    <div class="field-grid two-up">
+                      <label class="field">
+                        <span>身份背景</span>
+                        <textarea
+                          id="field-identity-background"
+                          rows="5"
+                          placeholder="具备【经验/专业背景】，擅长从【维度】判断问题。"
+                        ></textarea>
+                        <small>补充这个角色凭什么从这样的背景出发判断，非必填。</small>
+                      </label>
+                      <label class="field">
+                        <span>表达风格</span>
+                        <textarea
+                          id="field-speaking-style"
+                          rows="5"
+                          placeholder="先【顺序1】，再【顺序2】，使用【语气/风格】表达。"
+                        ></textarea>
+                        <small>描述表达方式，影响体感，但不属于核心判断锚点。</small>
+                      </label>
+                    </div>
+                  </details>
+                  <div class="bridge-banner">
+                    <strong>治理映射已移到治理侧</strong>
+                    <span
+                      >适用场景、使用说明、可信依据摘要进入使用前说明视图；企业实际角色映射进入治理与发布页，按多角色映射维护。</span
+                    >
+                  </div>
+                </div>
+              </section>
+
+              <section class="workspace-step" data-step-panel="knowledge">
+                <div class="section-card card-surface">
+                  <div class="section-header">
+                    <div>
+                      <p class="section-kicker">L2 · 知识依据</p>
+                      <h3>知识绑定可选增强，但知识状态必须被真实表达</h3>
+                    </div>
+                    <span class="section-badge section-badge-mint"
+                      >知识依据</span
+                    >
+                  </div>
+                  <div class="layer-pill-row">
+                    <span class="layer-pill">L2 · 知识依据</span>
+                    <span class="layer-pill layer-pill-muted"
+                      >可绑定真实知识，也可明确暂不绑定</span
+                    >
+                  </div>
+                  <div class="evidence-strip">
+                    <article class="evidence-card">
+                      <p>知识状态</p>
+                      <strong id="knowledgeCountCard">已绑定 2 条</strong>
+                      <span id="knowledgeBaseCard"
+                        >knowledge-eve / 经营分析专题</span
+                      >
+                    </article>
+                    <article class="evidence-card">
+                      <p>最近测试</p>
+                      <strong id="testScoreCard">4.6 / 5</strong>
+                      <span id="testRecordCard">2026-06-06 · 运营复盘场景</span>
+                    </article>
+                    <article class="evidence-card">
+                      <p>可追溯输出</p>
+                      <strong id="trustOutputTypeCard">decision_advice</strong>
+                      <span>固定 schema + structured_result</span>
+                    </article>
+                  </div>
+                  <div class="field-grid">
+                    <label class="field">
+                      <span>知识边界</span>
+                      <textarea
+                        id="field-kb"
+                        rows="5"
+                        placeholder="基于【知识来源】回答，暂不覆盖【不覆盖范围】。"
+                      ></textarea>
+                      <small id="knowledgeBoundaryHelp">说明知识覆盖范围；应在完成知识绑定后再确认。</small>
+                    </label>
+                  </div>
+                  <div class="mini-callout">
+                    <strong id="knowledgeCalloutTitle">先绑定，再确认边界</strong>
+                    <span id="knowledgeCalloutBody"
+                      >知识边界应优先根据已绑定知识生成模板化初稿，再由用户补齐不覆盖范围，而不是完全空白起写。</span
+                    >
+                  </div>
+                  <div class="knowledge-picker-card">
+                    <div class="section-title-row">
+                      <div>
+                        <p class="section-kicker">v0.4 基线能力延续</p>
+                        <h4>知识绑定操作</h4>
+                      </div>
+                      <button
+                        class="button button-secondary"
+                        id="openKnowledgeDialog"
+                      >
+                        选择知识
+                      </button>
+                    </div>
+                    <p class="sub-card-copy">
+                      <span id="knowledgePanelCopy">这里必须保留真实的知识绑定入口。v0.5
+                      可以重做理解路径，但不能把已有的知识库绑定能力从角色定义主链拿掉。</span>
+                    </p>
+                    <div class="knowledge-mini-stats">
+                      <div>
+                        <strong id="selectedKnowledgeCount">2</strong
+                        ><span>已选文件</span>
+                      </div>
+                      <div>
+                        <strong id="selectedKbCount">1</strong
+                        ><span>涉及知识库</span>
+                      </div>
+                      <div>
+                        <strong id="selectedKnowledgeVersionState">2 / 2</strong
+                        ><span>带版本快照</span>
+                      </div>
+                    </div>
+                    <div
+                      class="selected-knowledge-list"
+                      id="selectedKnowledgeList"
+                    ></div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="workspace-step" data-step-panel="capability">
+                <div class="section-card card-surface">
+                  <div class="section-header">
+                    <div>
+                      <p class="section-kicker">L3 · 数据能力（可选）</p>
+                      <h3>定义这个角色版本是否被授权读取结构化业务数据</h3>
+                    </div>
+                    <span class="section-badge section-badge-amber"
+                      >数据能力</span
+                    >
+                  </div>
+                  <div class="layer-pill-row">
+                    <span class="layer-pill">L3 · 版本级数据能力绑定</span>
+                    <span class="layer-pill layer-pill-muted"
+                      >角色页只做选择，管理员页维护资产</span
+                    >
+                  </div>
+                  <div class="evidence-strip">
+                    <article class="evidence-card">
+                      <p>数据能力状态</p>
+                      <strong id="dataCapabilityStateCard">未授权</strong>
+                      <span id="dataCapabilitySummaryCard"
+                        >当前未授权结构化业务数据</span
+                      >
+                    </article>
+                    <article class="evidence-card">
+                      <p>绑定数量</p>
+                      <strong id="selectedDataAssetCount">0</strong>
+                      <span>版本级数据资产</span>
+                    </article>
+                    <article class="evidence-card">
+                      <p>运行生效方式</p>
+                      <strong>平台服务端查询层</strong>
+                      <span>不向角色页暴露数据库连接</span>
+                    </article>
+                  </div>
+                  <div class="mini-callout">
+                    <strong id="dataAssetCalloutTitle">未授权也是合法状态</strong>
+                    <span id="dataAssetCalloutBody"
+                      >当前不要求每个角色都绑定结构化业务数据。若未绑定，消费侧必须如实表达“当前未授权结构化业务数据”。</span
+                    >
+                  </div>
+                  <div class="knowledge-picker-card">
+                    <div class="section-title-row">
+                      <div>
+                        <p class="section-kicker">管理员页维护，角色页选择绑定</p>
+                        <h4>选择数据资产</h4>
+                      </div>
+                      <button
+                        class="button button-secondary"
+                        id="openDataAssetDialog"
+                      >
+                        选择数据资产
+                      </button>
+                    </div>
+                    <p class="sub-card-copy">
+                      <span id="dataAssetPanelCopy"
+                        >当前角色页只绑定已配置的数据资产项，不现场填写数据库连接、账号密钥或 SQL 细节。</span
+                      >
+                    </p>
+                    <div
+                      class="selected-knowledge-list"
+                      id="selectedDataAssetList"
+                    ></div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="workspace-step" data-step-panel="output">
+                <div class="section-card card-surface">
+                  <div class="section-header">
+                    <div>
+                      <p class="section-kicker">L4 · 输出方式与运行配置</p>
+                      <h3>先明确默认输出方式，再决定是否进入结构化路径</h3>
+                    </div>
+                    <span class="section-badge section-badge-amber"
+                      >输出运行</span
+                    >
+                  </div>
+                  <div class="layer-pill-row">
+                    <span class="layer-pill">L4 · 先分 freeform / structured</span>
+                    <span class="layer-pill layer-pill-muted"
+                      >模型绑定与 tokens 在高级区</span
+                    >
+                  </div>
+                  <div class="field-grid">
+                    <label class="field">
+                      <span>输出方式</span>
+                      <div class="choice-stack" id="outputModeChoices"></div>
+                      <small>自由输出是合法默认路径；只有结构化输出时，才需要模板与扩展字段。</small>
+                    </label>
+                  </div>
+                  <div class="mini-callout" id="outputModeCallout">
+                    <strong id="outputModeTitle">当前默认自由输出</strong>
+                    <span id="outputModeBody"
+                      >未进入结构化路径时，不要求配置输出类型与 schema；模型绑定仍可在高级区按需覆盖。</span
+                    >
+                  </div>
+                  <div class="field-grid two-up" id="structuredOutputPanel">
+                    <label class="field">
+                      <span>结构化输出类型</span>
+                      <div class="choice-stack" id="outputChoices"></div>
+                      <small>先用业务语言选择“这个角色默认交付什么结果”，再生成模板与扩展。</small>
+                    </label>
+                    <div class="schema-stack">
+                      <label class="field">
+                        <span>平台通用模板</span>
+                        <div class="schema-preview" id="schemaPreview"></div>
+                        <small>必须基于平台模板自动带出，不允许从空白 schema 起写。</small>
+                      </label>
+                      <label class="field">
+                        <span>角色级业务 Schema 扩充</span>
+                        <div class="business-schema-preview" id="businessSchemaPreview"></div>
+                        <small>只允许增加业务字段，不允许删除或破坏模板核心字段。</small>
+                      </label>
+                    </div>
+                  </div>
+                  <details class="advanced-box">
+                    <summary>展开模型覆盖与高级配置</summary>
+                    <div class="mini-callout">
+                      <strong>默认沿用系统模型</strong>
+                      <span>只有当某个角色版本确实需要覆盖默认模型时，才展开并修改这些项。</span>
+                    </div>
+                    <div class="advanced-grid">
+                      <label class="field">
+                        <span>模型供应方</span>
+                        <input
+                          id="field-model-provider"
+                          type="text"
+                          value="custom"
+                        />
+                      </label>
+                      <label class="field">
+                        <span>模型名称</span>
+                        <input
+                          id="field-model-name"
+                          type="text"
+                          value="deepseek-v4-pro"
+                        />
+                      </label>
+                      <label class="field">
+                        <span>Temperature</span>
+                        <input id="field-temperature" type="text" value="0.3" />
+                      </label>
+                      <label class="field">
+                        <span>Max Tokens</span>
+                        <input id="field-max-tokens" type="text" value="4096" />
+                      </label>
+                    </div>
+                  </details>
+                </div>
+              </section>
+            </div>
+
+            <aside class="workspace-summary card-surface">
+              <div class="summary-head">
+                <div>
+                  <p class="eyebrow">角色资产就绪度</p>
+                  <h3 id="progressPercent">68%</h3>
+                </div>
+                <div class="donut">
+                  <svg viewBox="0 0 42 42">
+                    <circle
+                      class="donut-track"
+                      cx="21"
+                      cy="21"
+                      r="15.915"
+                    ></circle>
+                    <circle
+                      id="donutMeter"
+                      class="donut-meter"
+                      cx="21"
+                      cy="21"
+                      r="15.915"
+                    ></circle>
+                  </svg>
+                </div>
+              </div>
+
+              <div class="summary-block">
+                <p>当前完成阶段</p>
+                <div id="summaryStageBoard" class="stage-stack"></div>
+                <div id="summaryStageGuidance" class="goal-note">
+                  先把角色定义做实，再逐步补齐使用前说明与治理最小项。
+                </div>
+              </div>
+
+              <div class="summary-block">
+                <p>角色定义骨架</p>
+                <ul id="definitionRequirements" class="status-list"></ul>
+              </div>
+
+              <div class="summary-block">
+                <p>使用前说明</p>
+                <ul id="contractRequirements" class="status-list"></ul>
+              </div>
+
+              <div class="summary-block">
+                <p>资产治理侧</p>
+                <ul id="governanceRequirements" class="status-list"></ul>
+              </div>
+
+              <div class="summary-block">
+                <p>辅助项</p>
+                <ul id="softRequirements" class="status-list"></ul>
+              </div>
+
+              <div class="summary-block">
+                <p>当前体验目标</p>
+                <div class="goal-note">
+                  让用户先回答“这个角色由什么组成”，而不是一进来就被治理字段和发布动作打断。
+                </div>
+              </div>
+
+              <div class="summary-actions">
+                <button
+                  class="button button-primary"
+                  data-screen-jump="briefing"
+                >
+                  去使用前说明
+                </button>
+                <button
+                  class="button button-secondary"
+                  data-screen-jump="validation"
+                >
+                  去试用与测试
+                </button>
+              </div>
+            </aside>
+          </div>
+        </section>
+
+        <section id="screen-briefing" class="screen">
+          <div class="briefing-layout">
+            <article class="briefing-hero card-surface">
+              <div class="briefing-topline">
+                <div>
+                  <p class="eyebrow">Pre-use Briefing</p>
+                  <h3 id="briefingName">经营分析顾问</h3>
+                </div>
+                <div class="token-line">
+                  <span class="token token-solid" id="briefingStatus"
+                    >草稿预演</span
+                  >
+                  <span class="token" id="briefingKnowledgeState"
+                    >未绑定真实知识</span
+                  >
+                  <span class="token" id="briefingDataState"
+                    >未授权结构化业务数据</span
+                  >
+                  <span class="token" id="briefingOutputMode"
+                    >自由输出</span
+                  >
+                </div>
+              </div>
+              <p id="briefingSummary" class="briefing-summary">
+                这一页不定义角色本体，而定义别人怎么正确地选择、理解和调用这个角色。
+              </p>
+              <div class="mini-callout">
+                <strong id="briefingRefreshTitle">说明卡当前已确认</strong>
+                <span id="briefingRefreshBody"
+                  >当 L1-L4、知识状态、数据能力状态或最近验证摘要变化后，这里会提示重新生成或重新确认。</span
+                >
+                <div class="mini-callout-actions">
+                  <button class="button button-secondary" id="regenerateBriefing">
+                    根据最新角色信息重生成说明卡
+                  </button>
+                  <button class="button button-ghost" id="confirmBriefing">
+                    沿用当前文字并确认
+                  </button>
+                </div>
+              </div>
+            </article>
+
+            <div class="briefing-grid">
+              <article class="detail-card card-surface">
+                <p class="card-kicker">这个角色适合干什么</p>
+                <h4>角色摘要</h4>
+                <dl>
+                  <div>
+                    <dt>一句话摘要</dt>
+                    <dd id="briefingBio">
+                      围绕经营复盘和投资判断前置分析，输出结构化建议与风险提示。
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>核心职责</dt>
+                    <dd id="briefingDuty">经营分析结论提炼与建议生成</dd>
+                  </div>
+                  <div>
+                    <dt>适用场景</dt>
+                    <dd id="briefingScenarios">
+                      经营复盘 / 投资分析前置判断 / 经营诊断
+                    </dd>
+                  </div>
+                </dl>
+                <div class="mini-callout">
+                  <strong>适用场景由系统生成主体</strong>
+                  <span>系统先生成 3-5 条建议场景；用户只做轻量增删改，不把这里重新做成第二套角色定义表单。</span>
+                </div>
+              </article>
+
+              <article class="detail-card card-surface">
+                <p class="card-kicker">怎么正确使用</p>
+                <h4>调用建议</h4>
+                <p id="briefingUsage" class="body-copy">
+                  面向经营管理层、财务 BP
+                  或上游决策系统使用。调用前应提供经营背景、核心指标和需要判断的问题。输出是结构化建议草案，不替代最终经营决策。
+                </p>
+                <div class="mini-callout">
+                  <strong>当前生效口径</strong>
+                  <span id="briefingCurrentRule"
+                    >说明卡当前保存版会被使用台、测试台和外供包直接复用；来源变化后需要重新确认。</span
+                  >
+                </div>
+              </article>
+
+              <article class="detail-card card-surface">
+                <p class="card-kicker">你将得到什么</p>
+                <h4>输出预览</h4>
+                <div class="evidence-grid compact">
+                  <div><strong id="briefingOutputMetric">自由输出</strong><span>输出方式</span></div>
+                  <div><strong id="briefingKnowledgeMetric">2 条</strong><span id="briefingKnowledgeLabel">知识绑定</span></div>
+                  <div><strong id="briefingDataMetric">未授权</strong><span id="briefingDataLabel">数据能力</span></div>
+                </div>
+                <p id="briefingOutput" class="body-copy">
+                  默认自由输出；若改为结构化输出，应按模板消费结果。
+                </p>
+              </article>
+
+              <article class="detail-card card-surface">
+                <p class="card-kicker">为什么可信 / 当前限制</p>
+                <h4>依据与限制</h4>
+                <p id="briefingSupport" class="body-copy">
+                  绑定集团经营分析知识库与指标口径规则，输出模板固定为
+                  decision_advice，已有 12 次测试记录且最近一次为 4.6/5。
+                </p>
+                <ul class="boundary-list">
+                  <li>
+                    <strong>知识边界：</strong
+                    ><span id="briefingKb"
+                      >当前未绑定真实知识。</span
+                    >
+                  </li>
+                  <li>
+                    <strong>数据能力：</strong
+                    ><span id="briefingData"
+                      >当前未授权结构化业务数据。</span
+                    >
+                  </li>
+                </ul>
+              </article>
+
+              <article class="detail-card card-surface briefing-edit-card">
+                <p class="card-kicker">轻量修订入口</p>
+                <h4>说明卡为主，修订为辅</h4>
+                <p class="body-copy">
+                  当前页以系统生成说明卡为主，不再采用“左侧编辑表单 + 右侧预览”的主结构。只有在系统生成内容不贴切时，才展开下面的轻量修订入口。
+                </p>
+                <details class="detail-collapse">
+                  <summary>展开轻量修订</summary>
+                  <div class="field-stack">
+                    <label class="field">
+                      <span>适用场景</span>
+                      <div class="tag-editor" id="scenarioEditor"></div>
+                      <div
+                        class="tag-suggestion-row"
+                        id="scenarioSuggestions"
+                      ></div>
+                      <small>逐条微调系统生成的适用场景，不把这里改成新的主表单。</small>
+                    </label>
+                    <label class="field">
+                      <span>使用说明</span>
+                      <textarea
+                        id="field-usage"
+                        rows="5"
+                        placeholder="面向【使用者】，在【输入前提】下输入【输入】，获得【输出】。"
+                      ></textarea>
+                      <small>只修改不贴切部分，避免从空白重新写一整套说明。</small>
+                    </label>
+                    <label class="field">
+                      <span>可信依据摘要</span>
+                      <textarea
+                        id="field-support"
+                        rows="5"
+                        placeholder="基于【知识/规则/流程/测试】成立，当前已有【证据】。"
+                      ></textarea>
+                      <small>系统生成主体后，仅补一句业务依据或限制说明。</small>
+                    </label>
+                  </div>
+                </details>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section id="screen-validation" class="screen">
+          <div class="publish-layout">
+            <article class="publish-card card-surface">
+              <div class="publish-head">
+                <div>
+                  <p class="eyebrow">Validation Desk</p>
+                  <h3>试用与测试</h3>
+                </div>
+                <span class="pill pill-ink">03 先验证角色能不能工作</span>
+              </div>
+
+              <div class="phase-callout">
+                <strong>测试动作只在这一页承接</strong>
+                <span>先验证当前版本的知识状态、数据能力和输出契约是否真的能跑起来，再进入治理与发布；不再把测试动作挂在治理页里。</span>
+              </div>
+
+              <div class="overview-grid">
+                <div class="overview-card">
+                  <strong>当前状态</strong>
+                  <span>draft / test</span>
+                  <small>仍未进入正式发布</small>
+                </div>
+                <div class="overview-card">
+                  <strong>说明卡状态</strong>
+                  <span>当前保存版 / 待确认更新</span>
+                  <small>测试前先看同一张说明卡</small>
+                </div>
+                <div class="overview-card">
+                  <strong>知识状态</strong>
+                  <span>已绑定 / 未绑定</span>
+                  <small>按真实状态如实展示</small>
+                </div>
+                <div class="overview-card">
+                  <strong>输出方式</strong>
+                  <span>freeform / structured</span>
+                  <small>按当前版本运行</small>
+                </div>
+              </div>
+
+              <div class="briefing-grid">
+                <article class="detail-card card-surface">
+                  <p class="card-kicker">测试输入区</p>
+                  <h4>执行动作跟输入区绑定，不放页头</h4>
+                  <label class="field">
+                    <span>测试查询</span>
+                    <textarea rows="4" placeholder="输入业务问题，验证该角色在当前知识 / 数据 / 输出配置下的表现。"></textarea>
+                    <small>先看同一张说明卡，再开始测试。</small>
+                  </label>
+                  <label class="field">
+                    <span>业务上下文（可选）</span>
+                    <textarea rows="3" placeholder="补充业务背景、目标对象或关键约束。"></textarea>
+                    <small>这是输入驱动动作，因此按钮留在这里，不进入页头。</small>
+                  </label>
+                  <div class="summary-actions">
+                    <button class="button button-primary">开始测试</button>
+                  </div>
+                </article>
+
+                <article class="detail-card card-surface">
+                  <p class="card-kicker">最近一次结果</p>
+                  <h4>验证结果要像产品反馈，不只是技术报错</h4>
+                  <div class="mini-callout">
+                    <strong>status = success</strong>
+                    <span>已输出经营判断、边界状态和结构化结果，可继续进入治理与发布。</span>
+                  </div>
+                  <ul class="boundary-list">
+                    <li><strong>自然语言结果：</strong><span>先给结论，再给关键理由和风险提示。</span></li>
+                    <li><strong>边界状态：</strong><span>knowledge_boundary / capability_boundary 都被显式返回。</span></li>
+                    <li><strong>validation_record：</strong><span>形成 `TestValidationRecord`，不写正式 `usage_record`。</span></li>
+                  </ul>
+                  <div class="summary-actions">
+                    <button class="button button-secondary" data-screen-jump="publish">
+                      下一步：去治理与发布
+                    </button>
+                  </div>
+                </article>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section id="screen-publish" class="screen">
+          <div class="publish-layout">
+            <article class="publish-card card-surface">
+              <div class="publish-head">
+                <div>
+                  <p class="eyebrow">Governance + Release</p>
+                  <h3>治理与发布</h3>
+                </div>
+                <span id="publishState" class="pill pill-danger">当前阻断</span>
+              </div>
+
+              <div class="phase-callout">
+                <strong>测试已前移，这里只做治理闭合与发布判断</strong>
+                <span>起草角色时不需要一次性压满；测试动作已由独立页面承接；进入“可供他人消费”前 `owner / business_domain / category` 全部必须明确；正式发布 / 外供前再叠加其余门禁。</span>
+              </div>
+
+              <div class="governance-box">
+                <div class="section-title-row">
+                  <div>
+                    <p class="section-kicker">资产治理字段</p>
+                    <h4>这些字段属于治理侧，不属于角色定义骨架</h4>
+                  </div>
+                </div>
+                <label class="field">
+                  <span>企业实际角色映射</span>
+                  <div class="tag-editor" id="roleMappingEditor"></div>
+                  <small>用于治理映射，不直接决定角色运行，可按企业里的实际岗位或职责角色逐条添加。</small>
+                </label>
+                <div class="field-grid two-up">
+                  <label class="field">
+                    <span>标签</span>
+                    <input
+                      id="field-tags"
+                      type="text"
+                      value="经营, 分析, 复盘"
+                    />
+                    <small>服务运营筛选和发现，不直接定义角色能力。</small>
+                  </label>
+                  <label class="field">
+                    <span>分类</span>
+                    <select id="field-category">
+                      <option>行业专家</option>
+                      <option selected>职能助手</option>
+                      <option>制度顾问</option>
+                      <option>项目管理</option>
+                      <option>自定义</option>
+                    </select>
+                    <small>治理分类，不进入 L1-L4 主骨架。</small>
+                  </label>
+                  <label class="field">
+                    <span>Owner</span>
+                    <input
+                      id="field-owner"
+                      type="text"
+                      value="finance.bp.owner"
+                    />
+                    <small>明确资产责任归属。</small>
+                  </label>
+                  <label class="field">
+                    <span>Maintainer</span>
+                    <input
+                      id="field-maintainer"
+                      type="text"
+                      value="strategy.ops"
+                    />
+                    <small>明确维护归属。</small>
+                  </label>
+                  <label class="field">
+                    <span>业务域</span>
+                    <input id="field-domain" type="text" value="经营分析" />
+                    <small>用于治理与发现辅助，不等于角色能力。</small>
+                  </label>
+                  <label class="field">
+                    <span>可见性</span>
+                    <select id="field-visibility">
+                      <option selected>内部</option>
+                      <option>部门</option>
+                      <option>公开</option>
+                    </select>
+                    <small>治理标签，不偷换成权限系统。</small>
+                  </label>
+                </div>
+              </div>
+
+              <div class="gate-columns gate-columns-triple">
+                <div>
+                  <h4>v0.4 基线门禁</h4>
+                  <ul id="publishBaselineList" class="gate-list"></ul>
+                </div>
+                <div>
+                  <h4>v0.5 补充门禁</h4>
+                  <ul id="publishAddedList" class="gate-list"></ul>
+                </div>
+                <div>
+                  <h4>正式发布治理最小项</h4>
+                  <ul id="publishGovernanceList" class="gate-list"></ul>
+                </div>
+              </div>
+
+              <div class="publish-soft-panel">
+                <h4>软提示</h4>
+                  <ul id="publishSoftList" class="gate-list"></ul>
+              </div>
+
+              <div class="blocker-callout">
+                <p>阻断说明</p>
+                <strong id="blockerReason"
+                  >当前角色尚未说明“怎么用”和“靠什么成立”，不能作为可复用资产发布。</strong
+                >
+              </div>
+
+              <div class="publish-actions">
+                <button class="button button-secondary" id="returnToGap">
+                  返回对应页面补齐
+                </button>
+                <button
+                  class="button button-primary"
+                  disabled
+                  id="publishButton"
+                >
+                  发布当前版本
+                </button>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section id="screen-usage" class="screen">
+          <div class="publish-layout">
+            <article class="publish-card card-surface">
+              <div class="publish-head">
+                <div>
+                  <p class="eyebrow">Consume Desk</p>
+                  <h3>正式消费</h3>
+                </div>
+                <span class="pill pill-ink">05 只面向已发布版本</span>
+              </div>
+
+              <div class="phase-callout">
+                <strong>正式消费与内部测试分开承接</strong>
+                <span>到这一步已经完成 `01/02/03/04`，用户先看同一张使用前说明卡，再对已发布版本执行正式 `consume`。</span>
+              </div>
+
+              <div class="overview-grid">
+                <div class="overview-card">
+                  <strong>Published version</strong>
+                  <span>rv_2026_06_08_v3</span>
+                  <small>正式消费固定绑定已发布版本</small>
+                </div>
+                <div class="overview-card">
+                  <strong>说明卡状态</strong>
+                  <span>fresh</span>
+                  <small>先理解，再调用</small>
+                </div>
+                <div class="overview-card">
+                  <strong>输出方式</strong>
+                  <span>decision_advice</span>
+                  <small>根据当前版本输出契约返回</small>
+                </div>
+                <div class="overview-card">
+                  <strong>历史消费</strong>
+                  <span>usage_record x N</span>
+                  <small>平台内正式使用可追溯</small>
+                </div>
+              </div>
+
+              <div class="briefing-grid">
+                <article class="detail-card card-surface">
+                  <p class="card-kicker">正式查询</p>
+                  <h4>`consume` 跟输入区绑定，不放页头</h4>
+                  <label class="field">
+                    <span>查询</span>
+                    <textarea rows="4" placeholder="输入业务问题或需要该角色处理的任务。"></textarea>
+                    <small>消费前置说明已在同页首屏复用，不需要再跳去别页猜。</small>
+                  </label>
+                  <label class="field">
+                    <span>业务上下文（可选）</span>
+                    <textarea rows="3" placeholder="补充任务目标、约束、已有资料等上下文。"></textarea>
+                    <small>输入驱动动作留在输入区底部，避免页头堆叠。</small>
+                  </label>
+                  <div class="summary-actions">
+                    <button class="button button-primary">
+                      执行 consume
+                    </button>
+                  </div>
+                </article>
+
+                <article class="detail-card card-surface">
+                  <p class="card-kicker">消费结果与记录</p>
+                  <h4>正式使用要同时看到本次结果和历史追溯</h4>
+                  <div class="mini-callout">
+                    <strong>status = success</strong>
+                    <span>返回自然语言结果、`structured_result`、边界状态，并写入正式 `usage_record`。</span>
+                  </div>
+                  <ul class="boundary-list">
+                    <li><strong>本次结果：</strong><span>先给经营判断，再给理由、风险和建议动作。</span></li>
+                    <li><strong>边界状态：</strong><span>继续保留知识边界与能力边界，不因为正式消费而丢失。</span></li>
+                    <li><strong>历史记录：</strong><span>最近 N 次 `usage_record` 形成平台内正式使用闭环。</span></li>
+                  </ul>
+                </article>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section id="screen-data-assets" class="screen">
+          <div class="publish-layout">
+            <article class="publish-card card-surface">
+              <div class="publish-head">
+                <div>
+                  <p class="eyebrow">Admin Data Assets</p>
+                  <h3>数据资产管理</h3>
+                </div>
+                <span class="pill pill-ink">管理员页</span>
+              </div>
+
+              <div class="phase-callout">
+                <strong>管理员维护最小数据资产项，角色页只绑定</strong>
+                <span>这里不做完整数据治理平台，只维护角色版本可读取的结构化业务数据资产。</span>
+              </div>
+
+              <div class="briefing-grid">
+                <article class="detail-card card-surface">
+                  <p class="card-kicker">资产列表</p>
+                  <h4>当前可绑定数据资产</h4>
+                  <div class="tag-suggestion-row" id="dataAssetFilterBar">
+                    <span class="token token-solid">全部</span>
+                    <span class="token">启用</span>
+                    <span class="token">停用</span>
+                  </div>
+                  <div class="selected-knowledge-list" id="dataAssetAdminList"></div>
+                </article>
+
+                <article class="detail-card card-surface">
+                  <p class="card-kicker">详情 / 编辑面板</p>
+                  <h4 id="dataAssetEditorTitle">经营指标日表</h4>
+                  <div class="field-grid two-up">
+                    <label class="field">
+                      <span>展示名称</span>
+                      <input id="data-asset-display-name" type="text" />
+                      <small>必填。供角色页和消费侧展示。</small>
+                    </label>
+                    <label class="field">
+                      <span>数据源引用</span>
+                      <input id="data-asset-datasource-ref" type="text" />
+                      <small>必填。指向平台内部数据源标识。</small>
+                    </label>
+                    <label class="field">
+                      <span>数据库名</span>
+                      <input id="data-asset-database-name" type="text" />
+                      <small>必填。</small>
+                    </label>
+                    <label class="field">
+                      <span>表名</span>
+                      <input id="data-asset-table-name" type="text" />
+                      <small>必填。</small>
+                    </label>
+                    <label class="field">
+                      <span>新鲜度</span>
+                      <input id="data-asset-freshness" type="text" />
+                      <small>可选。</small>
+                    </label>
+                    <label class="field">
+                      <span>Owner Team</span>
+                      <input id="data-asset-owner-team" type="text" />
+                      <small>可选。</small>
+                    </label>
+                  </div>
+                  <label class="field">
+                    <span>范围说明</span>
+                    <textarea
+                      id="data-asset-scope-summary"
+                      rows="4"
+                      placeholder="可读取【业务对象/指标】，粒度到【组织/周期】；不包含【明显不含范围】。"
+                    ></textarea>
+                    <small>必填。明确这个资产表达什么、粒度到哪里。</small>
+                  </label>
+                  <div class="field-grid two-up">
+                    <label class="field">
+                      <span>状态</span>
+                      <select id="data-asset-status">
+                        <option value="active">启用</option>
+                        <option value="inactive">停用</option>
+                      </select>
+                      <small>停用后不再允许新版本继续绑定。</small>
+                    </label>
+                    <div class="mini-callout">
+                      <strong>边界固定</strong>
+                      <span>这里不展示账号密钥、SQL 编辑器或写入动作配置。</span>
+                    </div>
+                  </div>
+                </article>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section id="screen-package" class="screen">
+          <div class="package-layout">
+            <article class="package-overview card-surface">
+              <div class="package-header">
+                <div>
+                  <p class="eyebrow">Export + Traceability</p>
+                  <h3>外供与追溯</h3>
+                </div>
+                <div class="toggle-pills">
+                  <button class="toggle-pill active" data-package-mode="tool">
+                    Tool package
+                  </button>
+                  <button class="toggle-pill" data-package-mode="skill">
+                    Skill package
+                  </button>
+                </div>
+              </div>
+
+              <div class="package-stamp">
+                <span class="stamp-item"
+                  ><strong>role_id</strong
+                  ><small>41cee65b-actor-ops</small></span
+                >
+                <span class="stamp-item"
+                  ><strong>role_version_id</strong
+                  ><small>rv_2026_06_08_v3</small></span
+                >
+                <span class="stamp-item"
+                  ><strong>Formal Source</strong
+                  ><small id="packageSourceState"
+                    >draft preview only</small
+                  ></span
+                >
+              </div>
+
+              <div class="package-state-banner" id="packageStateBanner">
+                <div>
+                  <strong id="packageBannerTitle">当前还是草稿预演</strong>
+                  <span id="packageBannerBody"
+                    >先满足发布门禁，再把单个已发布角色版本生成稳定供给物。</span
+                  >
+                </div>
+                <button class="button button-secondary" id="packageGoPublish">
+                  先去发布
+                </button>
+              </div>
+
+              <div class="mini-callout">
+                <strong>数据能力当前生效配置</strong>
+                <span id="packageDataPolicy"
+                  >当前外供冻结身份、说明卡和调用契约；数据能力按管理员当前生效配置运行，不承诺版本冻结复现。</span
+                >
+              </div>
+
+              <div class="package-hero">
+                <div class="package-hero-copy">
+                  <h4 id="packageTitle">经营分析顾问 Tool Package</h4>
+                  <p id="packageSummary" class="package-summary">
+                    这里承接已发布角色版本的外供生成和外部使用回写，不再与角色定义页混写。
+                  </p>
+                </div>
+                <button class="button button-primary" id="simulateExternalUse">
+                  模拟一次外部调用
+                </button>
+              </div>
+            </article>
+
+            <div class="package-grid">
+              <article class="detail-card card-surface">
+                <p class="card-kicker">供给物随附说明</p>
+                <h4>最小说明卡</h4>
+                <ul class="boundary-list compact">
+                  <li>
+                    <strong>核心职责：</strong
+                    ><span id="packageDuty">经营分析结论提炼与建议生成</span>
+                  </li>
+                  <li>
+                    <strong>适用场景：</strong
+                    ><span id="packageScenarios"
+                      >经营复盘 / 投资分析前置判断 / 经营诊断</span
+                    >
+                  </li>
+                  <li>
+                    <strong>怎么用：</strong
+                    ><span id="packageUsage"
+                      >提供经营背景、指标和问题，再输出结构化建议草案。</span
+                    >
+                  </li>
+                  <li>
+                    <strong>为什么可信：</strong
+                    ><span id="packageSupport"
+                      >绑定知识、固定输出结构、已有测试基础。</span
+                    >
+                  </li>
+                </ul>
+              </article>
+
+              <article class="detail-card card-surface">
+                <p class="card-kicker">调用契约</p>
+                <h4>绑定 consume API</h4>
+                <pre class="code-block" id="packageContract">
+POST /role-assets/{role_id}/consume
+role_version_id=rv_2026_06_08_v3
+caller_type=agent_platform
+
+response:
+- output_mode
+- structured_result
+- status
+- boundary_status
+- usage_record</pre
+                >
+              </article>
+
+              <article class="detail-card card-surface">
+                <p class="card-kicker">回写闭环</p>
+                <h4>外部使用追溯</h4>
+                <div class="log-stream" id="writebackLog">
+                  <div class="log-item">
+                    <strong>等待外部调用</strong>
+                    <span>调用后平台侧必须继续形成 usage_record。</span>
+                  </div>
+                </div>
+              </article>
+
+              <article class="detail-card card-surface">
+                <p class="card-kicker">供给物预览</p>
+                <h4>交付包内容（冻结最小契约）</h4>
+                <ul class="artifact-list" id="packageFiles"></ul>
+              </article>
+
+              <article class="detail-card card-surface">
+                <p class="card-kicker">关键治理语义</p>
+                <h4>不可丢失</h4>
+                <div class="token-cloud">
+                  <span class="token">role_id</span>
+                  <span class="token">role_version_id</span>
+                  <span class="token">output_mode</span>
+                  <span class="token">structured_result</span>
+                  <span class="token">status</span>
+                  <span class="token">boundary_status</span>
+                  <span class="token">usage_record</span>
+                </div>
+              </article>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <dialog id="draftDialog" class="draft-dialog">
+      <div class="draft-head">
+        <div>
+          <p class="eyebrow">AI Draft Preview</p>
+          <h3>自然语言生成结构化草案</h3>
+        </div>
+        <button
+          class="button button-ghost button-icon"
+          id="closeDraftDialog"
+          aria-label="关闭"
+        >
+          ×
+        </button>
+      </div>
+      <label class="field">
+        <span>角色意图描述</span>
+        <textarea id="draftIntentTextarea" rows="4">我想创建一个能帮助集团管理层做经营复盘和投资前置判断的角色。它要基于经营分析知识和指标口径，输出结构化建议与风险提示，不替代最终经营决策。</textarea>
+        <small>这是 v0.4 已有 AI 起草主入口的延续：自然语言输入，生成草案，人确认后保存。</small>
+      </label>
+        <div class="draft-grid">
+          <article>
+            <p>L1 草案</p>
+            <ul>
+              <li>核心职责：经营分析结论提炼与建议生成</li>
+              <li>分析视角：优先关注经营结果背后的关键驱动因素</li>
+              <li>决策风格：均衡审慎</li>
+            </ul>
+          </article>
+          <article>
+            <p>L2-L4 草案</p>
+            <ul>
+              <li>知识依据：可绑定真实知识，也可先保持未绑定状态</li>
+              <li>数据能力：默认未授权，可由人后续绑定数据资产</li>
+              <li>输出方式：建议走结构化输出，并选择决策建议模板</li>
+            </ul>
+          </article>
+        <article>
+          <p>使用前说明草案</p>
+          <ul>
+            <li>适用场景：经营复盘、投资前置判断</li>
+            <li>使用说明：需提供背景、指标与问题</li>
+            <li>可信依据：绑定知识 + 固定输出模板 + 测试记录</li>
+          </ul>
+        </article>
+      </div>
+      <div class="phase-callout compact">
+        <strong>AI 草案不直接落库</strong>
+        <span>它只是把自然语言整理成结构化初稿，最终仍回到同一工作区由人确认和修改。</span>
+      </div>
+      <div class="draft-actions">
+        <button class="button button-secondary" id="insertDraft">
+          整体填入工作区
+        </button>
+        <button class="button button-primary" id="closeDraftSecondary">
+          继续手工修改
+        </button>
+      </div>
+    </dialog>
+
+    <dialog id="knowledgeDialog" class="draft-dialog knowledge-dialog">
+      <div class="draft-head">
+        <div>
+          <p class="eyebrow">Knowledge Binding</p>
+          <h3>选择知识</h3>
+        </div>
+        <button
+          class="button button-ghost button-icon"
+          id="closeKnowledgeDialog"
+          aria-label="关闭"
+        >
+          ×
+        </button>
+      </div>
+      <div class="knowledge-dialog-meta">
+        <span
+          >按知识库分组浏览当前可绑定知识。这里是 v0.4 已有真实能力，在 v0.5
+          中必须继续作为工作区内操作存在；如果当前阶段不需要知识，也可以明确保持“暂不绑定真实知识”。</span
+        >
+        <strong id="knowledgeDialogCounter">已选 2 条</strong>
+      </div>
+      <div class="knowledge-dialog-grid" id="knowledgeDialogGrid"></div>
+      <div class="draft-actions">
+        <button class="button button-secondary" id="clearKnowledgeSelection">
+          当前角色暂不绑定真实知识
+        </button>
+        <button class="button button-primary" id="confirmKnowledgeSelection">
+          完成选择
+        </button>
+      </div>
+    </dialog>
+
+    <dialog id="dataAssetDialog" class="draft-dialog knowledge-dialog">
+      <div class="draft-head">
+        <div>
+          <p class="eyebrow">Data Capability Binding</p>
+          <h3>选择数据资产</h3>
+        </div>
+        <button
+          class="button button-ghost button-icon"
+          id="closeDataAssetDialog"
+          aria-label="关闭"
+        >
+          ×
+        </button>
+      </div>
+      <div class="knowledge-dialog-meta">
+        <span
+          >按数据资产项浏览当前可绑定的结构化业务数据。角色页只做选择；资产本身由管理员在独立页面维护。</span
+        >
+        <strong id="dataAssetDialogCounter">已选 0 条</strong>
+      </div>
+      <div class="knowledge-dialog-grid" id="dataAssetDialogGrid"></div>
+      <div class="draft-actions">
+        <button class="button button-secondary" id="clearDataAssetSelection">
+          当前角色暂不授权结构化业务数据
+        </button>
+        <button class="button button-primary" id="confirmDataAssetSelection">
+          完成选择
+        </button>
+      </div>
+    </dialog>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

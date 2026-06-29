@@ -1,6 +1,6 @@
 """知识相关 Pydantic Schema"""
 from datetime import datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class KnowledgeBaseItem(BaseModel):
@@ -19,8 +19,7 @@ class KnowledgeRefOut(BaseModel):
     knowledge_source: str = "knowledge-platform"
     bound_at: datetime | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class KnowledgeRefPublicOut(BaseModel):
@@ -33,8 +32,7 @@ class KnowledgeRefPublicOut(BaseModel):
     knowledge_source: str = "knowledge-platform"
     bound_at: datetime | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class KnowledgeVersionOut(BaseModel):
@@ -42,8 +40,7 @@ class KnowledgeVersionOut(BaseModel):
     knowledge_object_id: str
     knowledge_version_id: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class KnowledgeRefCreate(BaseModel):

@@ -6,7 +6,14 @@ import { Layout } from './components/Layout';
 import { RoleList } from './pages/RoleList';
 import { RoleDetail } from './pages/RoleDetail';
 import { RoleEdit } from './pages/RoleEdit';
+import { RoleBriefingPage } from './pages/RoleBriefing';
+import { RoleGovernancePage } from './pages/RoleGovernance';
+import { DataAssetsPage } from './pages/DataAssets';
+import { RoleExportsPage } from './pages/RoleExports';
 import { RoleTest } from './pages/RoleTest';
+import { Marketplace } from './pages/Marketplace';
+import { Dashboard } from './pages/Dashboard';
+import { RoleVersions } from './pages/RoleVersions';
 
 function Login({ onLogin }: { onLogin: (user: User) => void }) {
   const [username, setUsername] = useState('admin');
@@ -33,7 +40,7 @@ function Login({ onLogin }: { onLogin: (user: User) => void }) {
       <section className="login-panel">
         <div className="brand-mark">VA</div>
         <h1>角色资产管理平台</h1>
-        <p>面向企业 AI 决策场景的虚拟专家配置、知识绑定与发布管理。</p>
+        <p>面向企业 AI 角色资产运营的统一工作区，覆盖角色定义、说明卡、治理发布与外供复用。</p>
         <label>账号</label>
         <input value={username} onChange={e => setUsername(e.target.value)} />
         <label>密码</label>
@@ -64,8 +71,16 @@ export default function App() {
           <Route path="/" element={<RoleList />} />
           <Route path="/roles/:id" element={<RoleDetail />} />
           <Route path="/roles/:id/edit" element={<RoleEdit />} />
+          <Route path="/roles/:id/briefing" element={<RoleBriefingPage />} />
+          <Route path="/roles/:id/governance" element={<RoleGovernancePage />} />
+          <Route path="/roles/:id/exports" element={<RoleExportsPage />} />
           <Route path="/roles/:id/test" element={<RoleTest />} />
+          <Route path="/roles/:id/use" element={<Navigate to="/roles/:id/exports" replace />} />
+          <Route path="/roles/:id/versions" element={<RoleVersions />} />
           <Route path="/create" element={<RoleEdit />} />
+          <Route path="/data-assets" element={<DataAssetsPage />} />
+          <Route path="/marketplace" element={<Marketplace />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Layout>

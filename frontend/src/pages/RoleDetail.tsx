@@ -1,121 +1,205 @@
-import { Archive, ArrowLeft, CheckCircle2, Edit3, Send, ShieldAlert, TestTube2 } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Package2, ShieldCheck, TestTube2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { api, statusText } from '../api';
-import type { RoleDetail as RoleDetailType, VersionItem } from '../api';
+import { api, briefingStatusText, outputModeText, outputTypeText, statusText, type RoleDetail as RoleDetailType } from '../api';
+import { ReadinessPanelCard } from '../components/ReadinessPanelCard';
+import { RoleBriefingCard } from '../components/RoleBriefingCard';
+import { RoleStageNav } from '../components/RoleStageNav';
 
 export function RoleDetail() {
-  const { id } = useParams<{ id: string }>();
+  const { id = '' } = useParams();
   const [role, setRole] = useState<RoleDetailType | null>(null);
-  const [versions, setVersions] = useState<VersionItem[]>([]);
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(true);
 
-  const load = async () => {
-    if (!id) return;
-    setLoading(true);
-    setError('');
-    try {
-      const [r, v] = await Promise.all([api.getRole(id), api.versions(id)]);
-      setRole(r);
-      setVersions(v);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '加载角色详情失败');
-    } finally {
-      setLoading(false);
-    }
-  };
+  useEffect(() => {
+    api.getRole(id).then(setRole).catch(err => setError(err instanceof Error ? err.message : '加载失败'));
+  }, [id]);
 
-  useEffect(() => { load(); }, [id]);
-
-  const action = async (type: 'test' | 'publish' | 'archive') => {
-    if (!id) return;
-    setError('');
-    try {
-      if (type === 'test') await api.toTest(id);
-      if (type === 'publish') await api.publish(id);
-      if (type === 'archive') await api.archive(id);
-      await load();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '操作失败');
-    }
-  };
-
-  if (loading) return <div className="page-loading">正在加载角色详情...</div>;
-  if (!role) return <div className="empty-state">角色不存在或无权访问</div>;
+  if (error) return <div className="alert error">{error}</div>;
+  if (!role) return <div className="page-loading">正在加载角色概览...</div>;
 
   return (
-    <section className="page">
-      <div className="page-head compact">
+    <div className="page">
+      <Link className="back-link" to="/"><ArrowLeft size={16} />返回角色列表</Link>
+
+      <div className="page-head">
         <div>
-          <Link to="/" className="back-link"><ArrowLeft size={16} />返回角色列表</Link>
+          <p className="eyebrow">Role Overview</p>
           <h1>{role.name}</h1>
           <p className="subtle">{role.bio}</p>
         </div>
         <div className="button-row">
-          <Link className="secondary-btn" to={`/roles/${role.role_id}/edit`}><Edit3 size={16} />编辑</Link>
-          <Link className="secondary-btn" to={`/roles/${role.role_id}/test`}><TestTube2 size={16} />测试</Link>
-          {role.status === 'draft' && <button className="secondary-btn" onClick={() => action('test')}><Send size={16} />进入测试</button>}
-          {role.status === 'test' && <button className="primary-btn" onClick={() => action('publish')}><CheckCircle2 size={16} />发布</button>}
-          {role.status === 'published' && <button className="secondary-btn" onClick={() => action('archive')}><Archive size={16} />归档</button>}
+          <Link className="secondary-btn" to={`/roles/${role.role_id}/edit`}>角色定义工作台</Link>
+          <Link className="secondary-btn" to={`/roles/${role.role_id}/briefing`}>使用前说明与调用预览</Link>
+          <Link className="primary-btn" to={`/roles/${role.role_id}/governance`}>治理与发布</Link>
         </div>
       </div>
-      {error && <div className="alert error"><ShieldAlert size={17} />{error}</div>}
 
-      <div className="detail-layout">
-        <section className="detail-main">
-          <div className="info-band">
-            <span className={`status-pill ${role.status}`}>{statusText[role.status] || role.status}</span>
-            <span>当前版本：{role.role_version_id || '未生成'}</span>
-            <span>测试次数：{role.test_run_count}</span>
-            <span>最新评分：{role.latest_test_rating || '-'}</span>
-          </div>
+      <div className="role-page-grid">
+        <RoleStageNav roleId={role.role_id} />
 
-          <section className="detail-section"><h2>心智配置</h2>
-            <dl>
-              <dt>身份背景</dt><dd>{role.identity_background || '-'}</dd>
-              <dt>核心立场</dt><dd>{role.point_of_view || '-'}</dd>
-              <dt>决策风格</dt><dd>{role.decision_style || '-'}</dd>
-              <dt>职责边界</dt><dd>{role.responsibility_boundary || '-'}</dd>
-              <dt>表达风格</dt><dd>{role.speaking_style || '-'}</dd>
-            </dl>
+        <div className="role-page-main">
+          <section className="metric-row">
+            <div>
+              <span>当前状态</span>
+              <strong>{statusText[role.status]}</strong>
+            </div>
+            <div>
+              <span>说明卡状态</span>
+              <strong>{briefingStatusText[role.briefing.status]}</strong>
+            </div>
+            <div>
+              <span>输出方式</span>
+              <strong>{outputModeText[role.output_mode]}</strong>
+            </div>
+            <div>
+              <span>最近验证</span>
+              <strong>{role.latest_tested_at ? '已验证' : '暂无'}</strong>
+            </div>
           </section>
 
-          <section className="detail-section"><h2>知识绑定</h2>
-            {role.knowledge_refs.length === 0 ? <p className="subtle">尚未绑定知识，发布前需要至少绑定 1 条。</p> : (
-              <div className="knowledge-summary">
-                {role.knowledge_refs.map(ref => <div key={ref.id}><strong>{ref.title || ref.knowledge_object_id}</strong><span>{ref.type || 'knowledge'} · {ref.knowledge_version_id || '未标记版本'}</span></div>)}
+          <section className="detail-section">
+            <div className="section-title-row">
+              <div>
+                <h2>当前版本概览</h2>
+                <p className="subtle">总览角色定义、说明卡、治理和外供当前状态。</p>
               </div>
-            )}
+              <Link className="text-link" to={`/roles/${role.role_id}/versions`}>
+                <ExternalLink size={14} />
+                查看版本记录
+              </Link>
+            </div>
+
+            <div className="overview-grid">
+              <div className="overview-card">
+                <strong>L1 身份与判断</strong>
+                <span>{role.main_duty_cluster || '待补齐核心职责'}</span>
+                <small>{role.point_of_view || '分析视角待补齐'}</small>
+              </div>
+              <div className="overview-card">
+                <strong>L2 知识依据</strong>
+                <span>{role.briefing.knowledge_status.label}</span>
+                <small>{role.knowledge_boundary || '当前未单独声明知识边界'}</small>
+              </div>
+              <div className="overview-card">
+                <strong>L3 数据能力</strong>
+                <span>{role.briefing.data_capability_status.label}</span>
+                <small>{role.data_asset_bindings.length > 0 ? `${role.data_asset_bindings.length} 条资产已绑定` : '当前未授权结构化业务数据'}</small>
+              </div>
+              <div className="overview-card">
+                <strong>L4 输出方式</strong>
+                <span>{outputModeText[role.output_mode]}</span>
+                <small>{role.output_type ? (outputTypeText[role.output_type] || role.output_type) : '自由输出'}</small>
+              </div>
+            </div>
           </section>
 
-          <section className="detail-section"><h2>能力与模型</h2>
-            <dl>
-              <dt>协作模式</dt><dd>{role.collaboration_mode || '-'}</dd>
-              <dt>能力边界</dt><dd>{role.capability_boundary || '-'}</dd>
-              <dt>模型</dt><dd>{role.model_binding ? `${role.model_binding.model_provider} / ${role.model_binding.model_name}` : '-'}</dd>
-              <dt>参数</dt><dd>{role.model_binding ? `temperature=${role.model_binding.temperature}, max_tokens=${role.model_binding.max_tokens}` : '-'}</dd>
-            </dl>
-          </section>
-        </section>
-
-        <aside className="detail-aside">
-          <section className="detail-section"><h2>版本记录</h2>
-            <div className="timeline">
-              {versions.map(version => (
-                <div key={version.role_version_id}>
-                  <strong>v{version.version_number}</strong>
-                  <span>{statusText[version.status] || version.status}</span>
-                  <small>{version.published_at ? new Date(version.published_at).toLocaleString('zh-CN') : '未发布'}</small>
-                </div>
+          <section className="detail-section">
+            <h2>工作区进度</h2>
+            <div className="check-grid">
+              {role.definition_progress.map(item => (
+                <article key={item.key} className={`check-card ${item.state}`}>
+                  <strong>{item.label}</strong>
+                  <span>{item.detail}</span>
+                </article>
               ))}
             </div>
           </section>
-          <section className="detail-section"><h2>发布追溯</h2>
-            {role.validated_knowledge_versions.length === 0 ? <p className="subtle">发布后会记录知识版本追溯。</p> : role.validated_knowledge_versions.map(item => <p key={`${item.knowledge_object_id}-${item.knowledge_version_id}`}>{item.knowledge_object_id}<br /><span>{item.knowledge_version_id}</span></p>)}
+
+          <RoleBriefingCard role={role} compact />
+
+          <div className="two-col">
+            <ReadinessPanelCard roleId={role.role_id} title="可供他人消费准备度" panel={role.share_readiness} />
+            <ReadinessPanelCard roleId={role.role_id} title="正式发布准备度" panel={role.publish_readiness} />
+          </div>
+
+          <section className="two-col role-overview-panels">
+            <article className="detail-section">
+              <div className="section-title-row">
+                <div>
+                  <h2>治理与发布</h2>
+                  <p className="subtle">治理主路径和门禁已独立收口，不再混在角色定义页。</p>
+                </div>
+                <Link className="text-link" to={`/roles/${role.role_id}/governance`}>
+                  <ShieldCheck size={14} />
+                  打开治理页
+                </Link>
+              </div>
+              <div className="mini-check-list">
+                <div className={`mini-check ${role.owner ? 'met' : 'missing'}`}>
+                  <div>
+                    <strong>Owner</strong>
+                    <span>{role.owner || '待补齐'}</span>
+                  </div>
+                </div>
+                <div className={`mini-check ${role.business_domain ? 'met' : 'missing'}`}>
+                  <div>
+                    <strong>业务域</strong>
+                    <span>{role.business_domain || '待补齐'}</span>
+                  </div>
+                </div>
+                <div className={`mini-check ${role.category ? 'met' : 'missing'}`}>
+                  <div>
+                    <strong>分类</strong>
+                    <span>{role.category || '待补齐'}</span>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <article className="detail-section">
+              <div className="section-title-row">
+                <div>
+                  <h2>外供与追溯</h2>
+                  <p className="subtle">已发布版本才能生成 Tool / Skill 包，并复用同一张说明卡。</p>
+                </div>
+                <Link className="text-link" to={`/roles/${role.role_id}/exports`}>
+                  <Package2 size={14} />
+                  打开外供页
+                </Link>
+              </div>
+              <div className="mini-check-list">
+                <div className={`mini-check ${role.published_version_id ? 'met' : 'missing'}`}>
+                  <div>
+                    <strong>Published version</strong>
+                    <span>{role.published_version_id || '当前尚无已发布版本'}</span>
+                  </div>
+                </div>
+                <div className={`mini-check ${role.briefing.status === 'fresh' ? 'met' : 'missing'}`}>
+                  <div>
+                    <strong>说明卡状态</strong>
+                    <span>{briefingStatusText[role.briefing.status]}</span>
+                  </div>
+                </div>
+                <div className={`mini-check ${role.latest_tested_at ? 'met' : 'missing'}`}>
+                  <div>
+                    <strong>验证记录</strong>
+                    <span>{role.latest_tested_at ? `${role.test_run_count} 次` : '当前还没有测试记录'}</span>
+                  </div>
+                </div>
+              </div>
+            </article>
           </section>
-        </aside>
+
+          <section className="detail-section">
+            <div className="section-title-row">
+              <div>
+                <h2>试用与正式消费</h2>
+                <p className="subtle">内部测试与正式消费分开承接，分别对应验证阶段和正式使用阶段。</p>
+              </div>
+              <div className="button-row">
+                <Link className="secondary-btn" to={`/roles/${role.role_id}/test`}>
+                  <TestTube2 size={14} />
+                  去测试台
+                </Link>
+                {role.published_version_id && role.status !== 'archived' && (
+                  <Link className="primary-btn" to={'/roles/' + role.role_id + '/exports'}>去外供与调用</Link>
+                )}
+              </div>
+            </div>
+          </section>
+        </div>
       </div>
-    </section>
+    </div>
   );
 }
